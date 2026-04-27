@@ -37,7 +37,7 @@ class EntityService:
     def drop_entity(self, id: int):
         try:
             with Session(self.engine) as session:
-                statement = delete(Entity).where(Entity.id == id)
+                statement = delete(Entity).where(Entity.id == id) # type: ignore OK
                 entity = session.exec(statement)
                 session.commit()
                 print(entity.rowcount)

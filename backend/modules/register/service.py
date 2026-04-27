@@ -11,7 +11,7 @@ class RegisterService:
     
     def to_user(self, data: RegisterData):
         password = pbkdf2_sha256.hash(data.password)
-        return User(username=data.username, password=password, email=data.email, role=data.role)
+        return User(username=data.username, password=password, role=data.role)
 
     def create_user(self, data: User):
         with Session(self.engine) as session:
@@ -21,7 +21,7 @@ class RegisterService:
             session.add(profile)
             print("profile")
             session.commit()
-            responce = {"username": data.username, "email": data.email, "role": data.role}
+            responce = {"username": data.username, "role": data.role}
 
         return responce
     

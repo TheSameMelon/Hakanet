@@ -4,4 +4,3 @@ from typing import Optional
 class AuthData(BaseModel):
     username: str
     password: str
-    email: Optional[str] = ""

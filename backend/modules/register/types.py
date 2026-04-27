@@ -6,4 +6,3 @@ class RegisterData(BaseModel):
     username: str
     password: str
     role: Roles
-    email: str

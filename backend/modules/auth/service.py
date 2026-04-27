@@ -28,7 +28,6 @@ class AuthService:
         payload = {
             "id": user.id,
             "username": user.username,
-            "email": user.email,
             "role": user.role,
             "iat": time,
             "exp": timestamp,
