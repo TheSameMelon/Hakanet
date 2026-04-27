@@ -11,7 +11,6 @@ type ErrorResponce = {
 export type User = {
     id: number,
     username: string,
-    email: string,
     role: Roles
 }
 
@@ -23,7 +22,10 @@ export type Entity = {
     meta: string // JSON string
 }
 
-export type Roles = "user" | "mentor"
+export enum Roles {
+    USER = "user",
+    MENTOR = "mentor"
+}
 
 export type Tag = {
     id: number,

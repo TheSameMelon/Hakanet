@@ -1,7 +1,6 @@
 import request from "@/core/api";
 import {Tag, TagFunctions, Tag_Entity} from "./types"
 import { APIResponce } from "@/core/types";
-import { DO_NOT_USE_OR_YOU_WILL_BE_FIRED_CALLBACK_REF_RETURN_VALUES } from "react";
 
 
 const useTags = (): TagFunctions => {

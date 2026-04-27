@@ -12,7 +12,7 @@ const validate = (req: Entity): boolean => {
 const useEntity = (): EntityFuncs => {
     const create = async(req: Entity): Promise<APIResponce> => {
         if (!validate(req)) return Promise.resolve({status: "error", error: "VALIDATION ERROR"})
-        const res = request("/entity/create", "post", req);
+        const res = request(`/entity/create`, "post", req);
         return res;
     }
 

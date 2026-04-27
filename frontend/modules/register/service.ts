@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import RegisterData from "./types";
 
 const validate = (data: RegisterData) => {
-    if (data.email !== "" && data.username !== "" && data.password !== ""){
+    if (data.username !== "" && data.password !== ""){
         return true
     }
     return false
