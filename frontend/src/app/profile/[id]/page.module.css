@@ -1,182 +1,169 @@
-/* Основной контейнер страницы */
 .pageWrapper {
   padding: 40px;
-  background-color: #f4f7fa; /* Светлый серо-голубой фон для всей страницы */
+  background-color: #f4f7fa;
   min-height: 100vh;
-  font-family: var(--font-nunito), sans-serif;
-  color: #1e293b;
+  font-family: sans-serif;
 }
 
-/* Ссылка возврата */
-.backLink {
-  color: #155DFC;
-  text-decoration: none;
-  font-weight: 600;
+/* Стили заголовка и новой кнопки */
+.profileHeader {
+  margin-bottom: 32px;
+}
+
+.backButton {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 30px;
-  transition: transform 0.2s ease;
+  gap: 12px;
+  text-decoration: none;
+  color: #155DFC;
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.3s ease;
 }
 
-.backLink:hover {
-  transform: translateX(-5px); /* Небольшая анимация при наведении */
+.iconCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #155DFC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Сетка дашборда */
+.iconCircle svg {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.backButton:hover {
+  color: #0047ab;
+}
+
+.backButton:hover .iconCircle {
+  background-color: rgba(21, 93, 252, 0.1);
+  border-color: #0047ab;
+}
+
+.backButton:hover .iconCircle svg {
+  transform: translateX(-3px);
+}
+
+/* Сетка карточек */
 .gridContainer {
   display: grid;
   grid-template-columns: 2fr 1fr 1.2fr;
-  grid-template-rows: auto auto;
   gap: 24px;
 }
 
-/* Базовая карточка */
 .card {
   background: #ffffff;
   border-radius: 16px;
   padding: 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Мягкая тень */
-}
-
-/* Блок ФИО */
-.mainInfo {
-  justify-content: center;
 }
 
 .mainInfo h1 {
-  font-size: 32px;
-  font-weight: 800;
+  font-size: 28px;
   margin: 0;
   color: #0f172a;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #e2e8f0;
 }
 
 .subText {
-  font-size: 16px;
   color: #64748b;
-  margin-top: 12px;
-  font-weight: 500;
+  margin-top: 8px;
 }
 
-/* Стили заголовков и значений в карточках */
 .cardLabel {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: #94a3b8;
-  margin-bottom: 12px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
 }
 
 .cardValue {
-  font-size: 44px;
+  font-size: 40px;
   font-weight: 800;
   color: #155DFC;
-  line-height: 1;
 }
 
-/* Карточка рейтинга (чуть другой акцент) */
-.ratingCard {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-}
-
-.ratingCard .cardValue {
-  color: #0f172a;
-}
-
-/* История (Таблица) */
+/* Таблица и Скролл */
 .historyTable {
   grid-column: span 2;
-  padding: 0;
+  padding: 0 !important;
   overflow: hidden;
   border: 1px solid #e2e8f0;
 }
 
-.tableHeader {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  background: #1e293b; /* Глубокий темный цвет для заголовка */
-  color: #ffffff;
-  padding: 16px 20px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
+.scrollContainer {
+  max-height: 240px;
+  overflow-y: auto;
+  background: #ffffff;
 }
 
-.tableBody {
-  display: flex;
-  flex-direction: column;
+.scrollContainer::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollContainer::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+}
+
+.tableHeader, .tableRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1.2fr 2fr 0.8fr 1.5fr;
+  gap: 15px;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.tableHeader {
+  background: #1e293b;
+  height: 50px;
+  text-transform: uppercase;
+  z-index: 2;
+  border-radius: 12px 12px 0 0;
 }
 
 .tableRow {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  height: 56px;
+  height: 60px;
   border-bottom: 1px solid #f1f5f9;
-  align-items: center;
-  transition: background-color 0.2s;
 }
 
-.tableRow:hover {
-  background-color: #f8fafc;
+.col {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
-.tableRow:last-child {
-  border-bottom: none;
+.tableHeader .col {
+  color: #ffffff !important;
+  font-size: 11px;
+  font-weight: 800;
 }
 
-.rowPlaceholder {
-  height: 12px;
-  width: 70%;
-  background: #f1f5f9;
-  border-radius: 6px;
-  margin: 0 20px;
+.tableRow .col {
+  color: #334155; 
+}
+
+.emptyTable {
+  padding: 20px;
+  text-align: center;
+  color: #94a3b8;
 }
 
 /* Тепловая карта */
-.heatMap {
-  grid-column: 3;
-}
-
-.mapVisual {
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10px;
-}
+.heatMap { grid-column: 3; }
 
 .gradientBox {
   width: 100%;
   height: 180px;
-  /* Красивый градиент в твоем фирменном стиле */
   background: linear-gradient(135deg, #155DFC 0%, #60A5FA 100%);
   border-radius: 12px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Эффект свечения для градиента */
-.gradientBox::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
-}
-
-/* Адаптивность для небольших экранов */
-@media (max-width: 1024px) {
-  .gridContainer {
-    grid-template-columns: 1fr 1fr;
-  }
-  .heatMap {
-    grid-column: span 2;
-  }
 }

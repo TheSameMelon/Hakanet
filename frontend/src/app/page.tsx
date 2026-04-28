@@ -1,38 +1,70 @@
 'use client';
 
-import React, { useState } from 'react';
-import Image from 'next/image'; // Импорт для работы с картинками
-import Link from 'next/link';   // Импорт для навигации
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import styles from './page.module.css';
-
-const mockData = [
-  { fio: 'Алексеев Дмитрий Петрович', region: 'Москва', rating: 9.2 },
-  { fio: 'Белова Елена Игоревна', region: 'Санкт-Петербург', rating: 8.5 },
-  { fio: 'Громов Иван Сергеевич', region: 'Новосибирск', rating: 7.9 },
-  { fio: 'Дмитриева Анна Владимировна', region: 'Екатеринбург', rating: 9.8 },
-  { fio: 'Елисеев Артем Маркович', region: 'Казань', rating: 6.4 },
-];
+import request from '@/core/api';
 
 type SortOrder = 'none' | 'asc' | 'desc';
 
 export default function Page() {
+  const [referees, setReferees] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('none');
+  
+  // Новые состояния для живого поиска
+  const [placeholder, setPlaceholder] = useState('Найти судью...');
+  const [isFocused, setIsFocused] = useState(false);
 
-  let filteredData = mockData.filter((user) => {
+  // Загрузка данных
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const res = await request('/referee/all', 'get');
+      if (res.status === "success") {
+        setReferees(res.data);
+      } else {
+        setError(res.error || "Ошибка загрузки");
+      }
+      setLoading(false);
+    };
+    loadData();
+  }, []);
+
+  // Динамический плейсхолдер
+  useEffect(() => {
+    const phrases = [
+      'Найти судью по ФИО...',
+      'Найти по городу...',
+      'Поиск по региону...',
+      'Введите фамилию...'
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      i = (i + 1) % phrases.length;
+      setPlaceholder(phrases[i]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const filteredData = referees.filter((user) => {
     const searchStr = searchQuery.toLowerCase();
     return (
-      user.fio.toLowerCase().includes(searchStr) || 
-      user.region.toLowerCase().includes(searchStr)
+      user.fio?.toLowerCase().includes(searchStr) || 
+      user.region?.toLowerCase().includes(searchStr) ||
+      user.city?.toLowerCase().includes(searchStr)
     );
   });
 
-  if (sortOrder !== 'none') {
-    filteredData = [...filteredData].sort((a, b) => {
-      if (sortOrder === 'asc') return a.rating - b.rating;
-      return b.rating - a.rating;
-    });
-  }
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (sortOrder === 'none') return 0;
+    const rateA = a.rating || 0;
+    const rateB = b.rating || 0;
+    return sortOrder === 'asc' ? rateA - rateB : rateB - rateA;
+  });
 
   const toggleSort = () => {
     if (sortOrder === 'none') setSortOrder('desc');
@@ -40,19 +72,15 @@ export default function Page() {
     else setSortOrder('none');
   };
 
-  const getSortText = () => {
-    if (sortOrder === 'desc') return 'Сначала лучшие';
-    if (sortOrder === 'asc') return 'Сначала худшие';
-    return 'Без сортировки';
-  };
+  if (loading) return <div className={styles.container}><h3>Загрузка...</h3></div>;
+  if (error) return <div className={styles.container}><h3 style={{color: 'red'}}>{error}</h3></div>;
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        {/* ЗАМЕНА: Теперь здесь кликабельное изображение */}
         <Link href="/" className={styles.logoLink}>
           <Image 
-            src="/logo-full.png" // Убедись, что файл лежит в папке public
+            src="/logo-full.png" 
             alt="Aerobic Space+" 
             width={240} 
             height={70} 
@@ -62,20 +90,32 @@ export default function Page() {
         </Link>
         
         <div className={styles.controls}>
-          <div className={styles.searchWrapper}>
+          {/* ОБНОВЛЕННЫЙ ЖИВОЙ ПОИСК */}
+          <div className={`${styles.searchWrapper} ${isFocused ? styles.focused : ''}`}>
             <input 
               type="text" 
-              placeholder="Поиск по ФИО или городу" 
+              placeholder={placeholder} 
               className={styles.searchInput}
               value={searchQuery}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <span className={styles.searchIcon}>🔍</span>
+            <div 
+              className={styles.iconContainer} 
+              onClick={() => searchQuery && setSearchQuery('')}
+            >
+              {searchQuery ? (
+                <span className={styles.clearIcon}>✕</span>
+              ) : (
+                <span className={styles.searchIcon}>🔍</span>
+              )}
+            </div>
           </div>
           
           <button className={styles.filterBtn} onClick={toggleSort}>
             <span>{sortOrder === 'none' ? '▼' : sortOrder === 'desc' ? '📈' : '📉'}</span> 
-            {getSortText()}
+            {sortOrder === 'desc' ? 'Сначала лучшие' : sortOrder === 'asc' ? 'Сначала худшие' : 'Без сортировки'}
           </button>
         </div>
       </header>
@@ -85,32 +125,28 @@ export default function Page() {
           <thead>
             <tr>
               <th>Фамилия имя отчество</th>
-              <th>Регион (Город)</th>
-              <th>Рейтинг (0-10)</th>
+              <th>Регион</th>
+              <th>Город</th>
+              <th>Рейтинг</th>
             </tr>
           </thead>
           <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((user, index) => (
-                <tr key={index}>
-                  <td>
-                    {/* Фамилия теперь кликабельна и ведет на профиль */}
-                    <Link href={`/profile/${encodeURIComponent(user.fio)}`} className={styles.nameLink}>
-                      {user.fio}
-                    </Link>
-                  </td>
-                  <td>{user.region}</td>
-                  <td style={{ 
-                    fontWeight: 700, 
-                    color: user.rating > 8 ? '#155DFC' : user.rating > 7 ? '#60A5FA' : '#f87171' 
-                  }}>
-                    {user.rating}
-                  </td>
-                </tr>
+            {sortedData.length > 0 ? (
+              sortedData.map((user) => (
+                <Link key={user.id} href={`/profile/${user.id}`} legacyBehavior passHref>
+                  <tr className={styles.clickableRow}>
+                    <td className={styles.nameCell}>{user.fio}</td>
+                    <td>{user.region || '—'}</td>
+                    <td>{user.city || '—'}</td>
+                    <td className={styles.ratingCell}>
+                      {user.rating ? user.rating : '—'}
+                    </td>
+                  </tr>
+                </Link>
               ))
             ) : (
               <tr>
-                <td colSpan={3} style={{ textAlign: 'center', padding: '40px' }}>
+                <td colSpan={4} style={{ textAlign: 'center', padding: '40px' }}>
                   Ничего не найдено
                 </td>
               </tr>
