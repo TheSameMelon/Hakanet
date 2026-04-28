@@ -32,3 +32,12 @@ class RefereeService:
         except Exception as e:
             print(repr(e))
             return None
+        
+    def get_profile(self, referee_id: int):
+        try:
+            with Session(self.engine) as session:
+                data = session.exec(select(Referee).where(Referee.id == referee_id)).one()
+            return data
+        except Exception as e:
+            print(repr(e))
+            return None

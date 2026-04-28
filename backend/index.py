@@ -20,7 +20,8 @@ from contextlib import asynccontextmanager
 from data.database import engine
 from fastapi.middleware.cors import CORSMiddleware
 origins = [
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
+    "http://localhost:3000"
 ]
 
 
@@ -41,14 +42,6 @@ server.add_middleware(CORSMiddleware, allow_origins=origins,allow_credentials=Tr
 server.include_router(AssessmentsRouter, prefix="/assessments", tags=["Оценки"])
 server.include_router(RefereeRouter, prefix="/referee", tags=["Судьи"])
 server.include_router(PerformancesRouter, prefix="/performances", tags=["Выступления"])
-#server.include_router(registerRouter, prefix="/register", tags=["Регистрация"])
-#server.include_router(authRouter, prefix='/auth', tags=["Авторизация"])
-#server.include_router(entityRouter, prefix="/entity", tags=["Сущности"])
-#server.include_router(tagRouter, prefix="/tag", tags=["Теги"])
-#server.include_router(profileRouter, prefix="/profile", tags=["Профили"])
-
-#if settings.DEBUG:
-#    server.include_router(debugRouter, prefix="/debug", tags=["Дебаг"])
 
 SQLModel.metadata.create_all(engine)
 
