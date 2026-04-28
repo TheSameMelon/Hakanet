@@ -3,7 +3,7 @@ from sqlmodel import Session, select, func, delete
 from data.database import engine
 from typing import Dict, List, Optional
 from collections import defaultdict
-from .types import Rating
+from core.types import Rating
 import json
 
 class DispersionService:
@@ -40,6 +40,27 @@ class DispersionService:
         """Проверяет, находится ли оценка в допустимом диапазоне"""
         category = self.get_accuracy_category(referee_score, final_score)
         return category in ['bullseye', 'acceptable']
+
+    def calculate_overall_rating_with_bias(self, referee_stats: Dict) -> float:
+        """
+        Рейтинг с штрафом за предвзятость
+        """
+        # Базовая точность
+        execution_rate = referee_stats['execution']['accuracy_rate']
+        artistic_rate = referee_stats['artistic']['accuracy_rate']
+        base_rating = (execution_rate + artistic_rate) / 2
+        
+        # Штраф за предвзятость (чем ближе к 0, тем лучше)
+        bias_execution = abs(referee_stats['execution']['bias'])
+        bias_artistic = abs(referee_stats['artistic']['bias'])
+        avg_bias = (bias_execution + bias_artistic) / 2
+        
+        # Штраф: максимум 0.3 (30%) за сильную предвзятость
+        bias_penalty = min(avg_bias * 0.5, 0.3)  # bias=0.6 → штраф 0.3
+        
+        final_rating = (base_rating - bias_penalty) * 100
+        
+        return round(max(0, min(100, final_rating)), 1)  # Ограничиваем 0-100
 
     def calc_rating(self) -> Dict:
         """
@@ -173,7 +194,9 @@ class DispersionService:
             
             data = [Rating(referee_id=referee_stats[i]["id"], 
                         execution=json.dumps(referee_stats[i]["execution"]), 
-                        artistic=json.dumps(referee_stats[i]["artistic"])) 
+                        artistic=json.dumps(referee_stats[i]["artistic"]),
+                        rating=self.calculate_overall_rating_with_bias(referee_stats[i]))
+                        
                     for i in referee_stats]
             session.add_all(data)
             session.commit()

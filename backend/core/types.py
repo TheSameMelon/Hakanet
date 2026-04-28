@@ -37,6 +37,14 @@ class Assessment(SQLModel, table=True):
     result_type_assessment: int # Итоговая оценка по категории
     result_assessment: int # Общая оценка за выступление
 
+
+class Rating(SQLModel, table=True):
+    id: int | None = Field(primary_key=True, default=None)
+    referee_id: int #= Field(foreign_key="referee.id")
+    execution: str # JSON STR
+    artistic: str # JSON STR
+    rating: float
+
 #class User(SQLModel, table=True):
 #    id: int | None = Field(default=None, primary_key=True)
 #    username: str = Field(unique=True)
