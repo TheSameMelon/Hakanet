@@ -1,5 +1,5 @@
 from sqlmodel import Session, select
-from core.types import Referee
+from core.types import Referee, Rating
 from data.database import engine
 import pathlib
 import csv
@@ -25,13 +25,27 @@ class RefereeService:
             session.commit()
 
     def get_all(self):
-        try:
-            with Session(self.engine) as session:
-                data = session.exec(select(Referee)).all()
-            return data
-        except Exception as e:
-            print(repr(e))
-            return None
+        with Session(self.engine) as session:
+            stmt = select(Referee, Rating.rating).join(
+                Rating, Rating.referee_id == Referee.id
+            )
+            results = session.exec(stmt).all()
+            
+            # Преобразуем Row в словари
+            referees = []
+            for row in results:
+                referee = row[0]  # Referee объект
+                rating = row[1]   # rating значение
+                
+                referees.append({
+                    'id': referee.id,
+                    'fio': referee.fio,
+                    'region': referee.region,
+                    'city': referee.city,
+                    'rating': rating
+                })
+            
+            return referees
         
     def get_profile(self, referee_id: int):
         try:
