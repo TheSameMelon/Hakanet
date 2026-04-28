@@ -5,7 +5,7 @@ from .service import PerformanceService
 service = PerformanceService()
 router = APIRouter()
 
-@router.get("all")
+@router.get("/all")
 def get_all():
     data = service.get_all()
     if not data:

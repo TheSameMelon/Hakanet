@@ -18,7 +18,7 @@ class AssessmentService:
             session.close()
         with open(self.path) as file:
             reader = csv.reader(file)
-            arr = [Assessment(id=i[0], refery_id=i[1], performance_id=i[2],type=i[3] ,number=i[4], referee_assessment=i[5], result_type_assessment=i[6], result_assessment=i[7]) for i in reader]
+            arr = [Assessment(id=i[0], referee_id=i[1], performance_id=i[2],type=i[3] ,number=i[4], referee_assessment=i[5], result_type_assessment=i[6], result_assessment=i[7]) for i in reader]
 
         with Session(self.engine) as session:
             session.add_all(arr)
