@@ -1,118 +1,123 @@
-"use client"
-import { useState } from "react";
-import useRegister from "@/modules/register/service"
-import useAuth from "@/modules/auth/service";
-import { Entity } from "@/core/types";
-import useEntity from "@/modules/entities/service";
-import {Roles} from "@/core/types"
+'use client';
 
+import React, { useState } from 'react';
+import Image from 'next/image'; // Импорт для работы с картинками
+import Link from 'next/link';   // Импорт для навигации
+import styles from './page.module.css';
 
-export default function Home() {
-  const [password, setPassword] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
-  const [role, setRole] = useState<Roles>(Roles.USER);
-  const [entity, setEntity] = useState<Entity>({id:0, meta: "", name: "", description: "", entity_type: ""});
-  const {create, find, drop, with_type} = useEntity();
-  const [type, setType] = useState<string>("");
-  const [loading, register] = useRegister();
-  const [authLoading, auth] = useAuth();
+const mockData = [
+  { fio: 'Алексеев Дмитрий Петрович', region: 'Москва', rating: 9.2 },
+  { fio: 'Белова Елена Игоревна', region: 'Санкт-Петербург', rating: 8.5 },
+  { fio: 'Громов Иван Сергеевич', region: 'Новосибирск', rating: 7.9 },
+  { fio: 'Дмитриева Анна Владимировна', region: 'Екатеринбург', rating: 9.8 },
+  { fio: 'Елисеев Артем Маркович', region: 'Казань', rating: 6.4 },
+];
 
-  const clickHandler = async() => {
-    const data = await register({password, username, role});
-    if (data.status === "success"){
-      console.log(data.data);
-    }
-    else{
-      console.log(data.error)
-    }
+type SortOrder = 'none' | 'asc' | 'desc';
+
+export default function Page() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('none');
+
+  let filteredData = mockData.filter((user) => {
+    const searchStr = searchQuery.toLowerCase();
+    return (
+      user.fio.toLowerCase().includes(searchStr) || 
+      user.region.toLowerCase().includes(searchStr)
+    );
+  });
+
+  if (sortOrder !== 'none') {
+    filteredData = [...filteredData].sort((a, b) => {
+      if (sortOrder === 'asc') return a.rating - b.rating;
+      return b.rating - a.rating;
+    });
   }
 
-  const clickHandler1 = async() => {
-    const data = await auth({password, username});
-    if (data.status === "success"){
-      console.log(data.data);
-    }
-    else{
-      console.log(data.error)
-    }
-  }
+  const toggleSort = () => {
+    if (sortOrder === 'none') setSortOrder('desc');
+    else if (sortOrder === 'desc') setSortOrder('asc');
+    else setSortOrder('none');
+  };
 
- const clickHandler2 = async() => {
-  const res = await create(entity);
-  if (res.status == "success"){
-    console.log(res)
-  }
-  else{
-    console.log(res.error)
-  }
-  
- }
-
- const clickHandler3 = async() => {
-  console.log(entity.id, typeof entity.id)
-    if (!entity.id) return
-    const e = find(entity.id);
-    console.log(await e);
- }
-
- const clickHandler4 = async() => {
-  const res = await with_type(type);
-  if (res.status === "success"){
-    console.log(res.data);
-  }
-  else{
-    console.log(res.error)
-  }
- }
-
- const clickHandler5 = async() => {
-  if (entity.id === undefined) return
-  const res = await drop(entity.id);
-  console.log(res);
-  if (res.status == "success"){
-    console.log(`DATA: ${JSON.stringify(res.data)}`);
-  }
-  else{
-    console.log(`ERROR: ${res.error}`);
-  }
- }
+  const getSortText = () => {
+    if (sortOrder === 'desc') return 'Сначала лучшие';
+    if (sortOrder === 'asc') return 'Сначала худшие';
+    return 'Без сортировки';
+  };
 
   return (
-    <>
-    <h1>Register</h1>
-    <div>
-      <input onChange={e => {setPassword(e.target.value)}} value={password} placeholder="pass" />
-      <input onChange={e => {setUsername(e.target.value)}} value={username} placeholder="username" />
-      <input onChange={e => {setRole(e.target.value)}} value={role} placeholder="role" />
-      <h2>{loading ? "LOADING" : ""}</h2>
-      <button onClick={clickHandler}>SEND</button>
-    </div>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        {/* ЗАМЕНА: Теперь здесь кликабельное изображение */}
+        <Link href="/" className={styles.logoLink}>
+          <Image 
+            src="/logo-full.png" // Убедись, что файл лежит в папке public
+            alt="Aerobic Space+" 
+            width={240} 
+            height={70} 
+            priority
+            className={styles.logoImage}
+          />
+        </Link>
+        
+        <div className={styles.controls}>
+          <div className={styles.searchWrapper}>
+            <input 
+              type="text" 
+              placeholder="Поиск по ФИО или городу" 
+              className={styles.searchInput}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <span className={styles.searchIcon}>🔍</span>
+          </div>
+          
+          <button className={styles.filterBtn} onClick={toggleSort}>
+            <span>{sortOrder === 'none' ? '▼' : sortOrder === 'desc' ? '📈' : '📉'}</span> 
+            {getSortText()}
+          </button>
+        </div>
+      </header>
 
-    <h1>Auth</h1>
-    <div>
-      <input onChange={e => {setPassword(e.target.value)}} value={password} placeholder="pass" />
-      <input onChange={e => {setUsername(e.target.value)}} value={username} placeholder="username" />
-      <h2>{authLoading ? "LOADING" : ""}</h2>
-      <button onClick={clickHandler1}>SEND</button>
+      <main className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Фамилия имя отчество</th>
+              <th>Регион (Город)</th>
+              <th>Рейтинг (0-10)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.length > 0 ? (
+              filteredData.map((user, index) => (
+                <tr key={index}>
+                  <td>
+                    {/* Фамилия теперь кликабельна и ведет на профиль */}
+                    <Link href={`/profile/${encodeURIComponent(user.fio)}`} className={styles.nameLink}>
+                      {user.fio}
+                    </Link>
+                  </td>
+                  <td>{user.region}</td>
+                  <td style={{ 
+                    fontWeight: 700, 
+                    color: user.rating > 8 ? '#155DFC' : user.rating > 7 ? '#60A5FA' : '#f87171' 
+                  }}>
+                    {user.rating}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={3} style={{ textAlign: 'center', padding: '40px' }}>
+                  Ничего не найдено
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </main>
     </div>
-
-    <h1>Entity</h1>
-    <div>
-      <input onChange={e => {setEntity(ent => {return {...ent, entity_type: e.target.value}})}} value={entity.entity_type} placeholder="entity_type" />
-      <input onChange={e => {setEntity(ent => {return {...ent, name: e.target.value}})}} value={entity.name} placeholder="name" />
-      <input onChange={e => {setEntity(ent => {return {...ent, description: e.target.value}})}} value={entity.description} placeholder="desc" />
-      <input onChange={e => {setEntity(ent => {return {...ent, meta: e.target.value}})}} value={entity.meta} placeholder="meta" />
-      <button onClick={clickHandler2}>CREATE</button>
-      <br />
-      <input onChange={e => {setEntity(ent => {return {...ent, id: Number(e.target.value)}})}} value={entity.id} placeholder="id" />
-      <button onClick={clickHandler3}>FIND</button>
-      <br />
-      <input onChange={e => setType(e.target.value)} placeholder="type" />
-      <button onClick={clickHandler4}>GET TYPE</button>
-      <br />
-      <input onChange={e => {setEntity(ent => {return {...ent, id: Number(e.target.value)}})}} value={entity.id} placeholder="id" />
-      <button onClick={clickHandler5}>DROP</button>
-    </div>
-    </>
-  )
+  );
 }
