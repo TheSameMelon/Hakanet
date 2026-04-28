@@ -1,8 +1,7 @@
 .container {
   padding: 40px;
-  /* Для основного интерфейса и кириллицы используем Nunito Sans [cite: 25, 30] */
   font-family: var(--font-nunito), sans-serif;
-  background-color: #ffffff; /* Чистый белый фон для светлой темы */
+  background-color: #f8fafc; /* Чуть сероватый фон, чтобы белые плашки выделялись */
   min-height: 100vh;
   color: #1a1a1a;
 }
@@ -10,16 +9,15 @@
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   margin-bottom: 48px;
 }
 
-/* Удаляем старый .logo и добавляем это: */
 .logoLink {
   display: flex;
   align-items: center;
   text-decoration: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s;
 }
 
 .logoLink:hover {
@@ -28,47 +26,93 @@
 
 .logoImage {
   object-fit: contain;
-  height: 64px; /* Высота под старый размер заголовка */
+  height: 64px;
   width: auto;
 }
 
-/* Ссылка на профиль в таблице */
-.nameLink {
-  color: inherit;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.nameLink:hover {
-  color: #155DFC;
-  text-decoration: underline;
-}
-
-/* Остальные стили (.container, .header, .table и т.д.) оставляй без изменений */
 .controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
 }
 
 .searchWrapper {
   position: relative;
   display: flex;
   align-items: center;
+  /* Плавное удлинение при фокусе */
+  width: 320px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.searchWrapper.focused {
+  width: 450px; /* Удлиняем поле */
 }
 
 .searchInput {
-  width: 320px;
+  width: 100%;
   height: 48px;
   padding: 0 45px 0 20px;
-  background-color: #ffffff;
-  border: 2px solid #155DFC; /* Primary [cite: 4] */
+  
+  /* Эффект Glassmorphism */
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  border: 1px solid rgba(21, 93, 252, 0.2);
   border-radius: 24px;
-  /* Допустимый размер 16px [cite: 40] */
   font-size: 16px;
   outline: none;
   color: #1a1a1a;
+  transition: all 0.3s ease;
+}
+
+/* Анимация пульсирующего неона при фокусе */
+.searchWrapper.focused .searchInput {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #155DFC;
+  box-shadow: 0 0 15px rgba(21, 93, 252, 0.3), 
+              0 0 5px rgba(21, 93, 252, 0.1);
+  animation: neonPulse 2s infinite ease-in-out;
+}
+
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 5px rgba(21, 93, 252, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(21, 93, 252, 0.5); }
+  100% { box-shadow: 0 0 5px rgba(21, 93, 252, 0.2); }
+}
+
+.iconContainer {
+  position: absolute;
+  right: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease;
+}
+
+.iconContainer:hover {
+  transform: scale(1.2);
+}
+
+.searchIcon, .clearIcon {
+  color: #155DFC;
+  font-size: 18px;
+  user-select: none;
+}
+
+.clearIcon {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Плавная смена плейсхолдера */
+.searchInput::placeholder {
+  transition: opacity 0.5s ease;
+  color: #94a3b8;
 }
 
 .searchIcon {
@@ -81,7 +125,6 @@
   background: none;
   border: none;
   color: #155DFC;
-  /* Допустимый размер 16px [cite: 40] */
   font-size: 16px;
   cursor: pointer;
   display: flex;
@@ -92,41 +135,75 @@
 
 .tableWrapper {
   width: 100%;
-  background: #ffffff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(21, 93, 252, 0.08); /* Мягкая тень в основном цвете */
 }
 
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* Позволяет строкам "расти" отдельно */
+  border-spacing: 0 8px;      /* Зазор между плашками */
 }
 
 .table th {
-  background-color: #155DFC; /* Primary [cite: 4] */
+  background-color: #155DFC;
   color: #ffffff;
   text-align: left;
   padding: 16px 20px;
-  /* Допустимый размер для подзаголовков 24px [cite: 38] */
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Скругляем углы только у заголовков */
+.table th:first-child { border-radius: 12px 0 0 12px; }
+.table th:last-child { border-radius: 0 12px 12px 0; }
+
+/* Кликабельная строка-плашка */
+.clickableRow {
+  cursor: pointer;
+  background-color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* "Пружинистая" анимация */
+  position: relative;
+  z-index: 1;
 }
 
 .table td {
-  padding: 16px 20px;
-  /* Нейтральный цвет для границ [cite: 9, 18] */
-  border-bottom: 1px solid #BFDBFE;
-  /* Допустимый размер 16px [cite: 40] */
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 15px;
+}
+
+/* Скругляем края каждой строки */
+.table td:first-child { border-left: 1px solid #e2e8f0; border-radius: 12px 0 0 12px; }
+.table td:last-child { border-right: 1px solid #e2e8f0; border-radius: 0 12px 12px 0; }
+
+/* ЭФФЕКТ ПРИ НАВЕДЕНИИ */
+.clickableRow:hover {
+  background-color: #f0f7ff !important; /* Становится голубее */
+  transform: scale(1.02);               /* Расширяется и увеличивается */
+  box-shadow: 0 12px 30px rgba(21, 93, 252, 0.15); /* Взлетает над столом */
+  z-index: 10;                          /* Перекрывает соседей */
+}
+
+.clickableRow:hover td {
+  border-color: #155DFC; /* Границы тоже подсвечиваются синим */
+}
+
+.nameCell {
+  color: #155DFC;
+  font-weight: 700;
   font-size: 16px;
 }
 
-.table tr:nth-child(even) {
-  /* Очень светлый оттенок нейтрального цвета для зебры [cite: 18] */
-  background-color: rgba(191, 219, 254, 0.1);
+.ratingCell {
+  font-weight: 800;
+  color: #155DFC;
+  text-align: center;
 }
 
-.table tr:hover {
-  /* Вторичный цвет для ховера [cite: 16] */
-  background-color: rgba(96, 165, 250, 0.1);
+/* Эффект нажатия */
+.clickableRow:active {
+  transform: scale(0.98);
+  background-color: #dbeafe !important;
 }
