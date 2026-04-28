@@ -1,4 +1,5 @@
 from sqlmodel import create_engine, SQLModel
+import csv
 from sqlalchemy import event
 
 engine = create_engine(
