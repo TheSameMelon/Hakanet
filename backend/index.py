@@ -9,6 +9,7 @@ from sqlmodel import SQLModel
 #from modules.profiles.route import router as profileRouter
 from modules.assessments.route import router as AssessmentsRouter
 from modules.referee.route import router as RefereeRouter
+from modules.performances.route import router as PerformancesRouter
 #from core.settings import settings
 
 from modules.assessments.service import AssessmentService
@@ -39,6 +40,7 @@ server.add_middleware(CORSMiddleware, allow_origins=origins,allow_credentials=Tr
 
 server.include_router(AssessmentsRouter, prefix="/assessments", tags=["Оценки"])
 server.include_router(RefereeRouter, prefix="/referee", tags=["Судьи"])
+server.include_router(PerformancesRouter, prefix="/performances", tags=["Выступления"])
 #server.include_router(registerRouter, prefix="/register", tags=["Регистрация"])
 #server.include_router(authRouter, prefix='/auth', tags=["Авторизация"])
 #server.include_router(entityRouter, prefix="/entity", tags=["Сущности"])

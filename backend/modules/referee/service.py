@@ -1,5 +1,5 @@
 from sqlmodel import Session, select
-from .types import Referee
+from core.types import Referee
 from data.database import engine
 import pathlib
 import csv
@@ -23,3 +23,12 @@ class RefereeService:
         with Session(self.engine) as session:
             session.add_all(arr)
             session.commit()
+
+    def get_all(self):
+        try:
+            with Session(self.engine) as session:
+                data = session.exec(select(Referee)).all()
+            return data
+        except Exception as e:
+            print(repr(e))
+            return None

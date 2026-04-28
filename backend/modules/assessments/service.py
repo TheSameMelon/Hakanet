@@ -1,7 +1,6 @@
-from .types import Types, Assessment
 from data.database import engine
 from sqlmodel import Session, select
-from core.types import APIResponce
+from core.types import APIResponce, Assessment
 import csv
 import pathlib
 

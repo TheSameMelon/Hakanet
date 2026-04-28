@@ -1,4 +1,4 @@
-from .types import Performance
+from core.types import Performance
 from sqlmodel import Session, select
 import pathlib
 import csv
@@ -22,3 +22,12 @@ class PerformanceService:
         with Session(self.engine) as session:
             session.add_all(arr)
             session.commit()
+
+    def get_all(self):
+        try:
+            with Session(self.engine) as session:
+                data = session.exec(select(Performance)).all()
+            return data
+        except Exception as e:
+            print(repr(e))
+            return None
