@@ -10,13 +10,13 @@ from sqlmodel import SQLModel
 from modules.assessments.route import router as AssessmentsRouter
 from modules.referee.route import router as RefereeRouter
 from modules.performances.route import router as PerformancesRouter
-from modules.dispersion.route import router as DispersionRouter
+from modules.rating.route import router as DispersionRouter
 #from core.settings import settings
 
 from modules.assessments.service import AssessmentService
 from modules.referee.service import RefereeService
 from modules.performances.service import PerformanceService
-from modules.dispersion.service import DispersionService
+from modules.rating.service import DispersionService
 
 from contextlib import asynccontextmanager
 from data.database import engine

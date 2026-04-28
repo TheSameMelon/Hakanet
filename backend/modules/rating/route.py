@@ -11,3 +11,11 @@ def get_rating(referee_id: int):
     if not data:
         return APIResponce(status="error")
     return APIResponce(status="success", data=data)
+
+
+@router.get("/performances/")
+def performances():
+    data = service.get_average_tolerance_percentage()
+    if not data:
+        return APIResponce(status="error")
+    return APIResponce(status="success", data=data)

@@ -3,7 +3,7 @@ from sqlmodel import Session, select, func, delete
 from data.database import engine
 from typing import Dict, List, Optional
 from collections import defaultdict
-from core.types import Rating
+from core.types import Rating, Types
 import json
 
 class DispersionService:
@@ -424,131 +424,91 @@ class DispersionService:
         except Exception as e:
             print(repr(e))
             return None
-    
-    """def get_referee_stats(self) -> Dict:
-        #Получает статистику по всем судьям: точность и предвзятость
-        #Раздельно для EXECUTION и ARTISTIC
+    def get_average_tolerance_percentage(self) -> Dict:
+        """
+        Рассчитывает средний % попадания в допустимое отклонение по ВСЕМ соревнованиям
+        Возвращает:
+        {
+            'execution': 78.5,  # средний % по исполнению
+            'artistic': 72.3,   # средний % по артистизму
+            'by_competition': {  # детализация по каждому соревнованию
+                'Competition 1': {'execution': 80.0, 'artistic': 75.0},
+                'Competition 2': {'execution': 77.0, 'artistic': 70.0}
+            }
+        }
+        """
         with Session(self.engine) as session:
-            # Загружаем все данные с JOIN
-            stmt = select(Referee, Assessment, Performance).join(
-                Assessment, Assessment.referee_id == Referee.id
-            ).join(
+            # Загружаем все оценки с информацией о соревнованиях
+            stmt = select(Assessment, Performance).join(
                 Performance, Assessment.performance_id == Performance.id
             )
             
             results = session.exec(stmt).all()
             
-            # Структура для хранения статистики
-            referee_stats = {}
+            # Структура для сбора статистики по соревнованиям
+            competition_stats = defaultdict(lambda: {
+                'execution': {'within': 0, 'total': 0},
+                'artistic': {'within': 0, 'total': 0}
+            })
             
-            for referee, assessment, performance in results:
-                # Инициализация структуры для судьи
-                if referee.id not in referee_stats:
-                    referee_stats[referee.id] = {
-                        'id': referee.id,
-                        'name': referee.fio,
-                        'region': referee.region,
-                        'city': referee.city,
-                        'execution': {
-                            'total': 0,
-                            'bullseye': 0,
-                            'acceptable': 0,
-                            'serious': 0,
-                            'deviation_sum': 0.0,  # для расчета среднего отклонения
-                            'bias_own_sum': 0.0,
-                            'bias_own_count': 0,
-                            'bias_other_sum': 0.0,
-                            'bias_other_count': 0
-                        },
-                        'artistic': {
-                            'total': 0,
-                            'bullseye': 0,
-                            'acceptable': 0,
-                            'serious': 0,
-                            'deviation_sum': 0.0,
-                            'bias_own_sum': 0.0,
-                            'bias_own_count': 0,
-                            'bias_other_sum': 0.0,
-                            'bias_other_count': 0
-                        }
-                    }
+            for assessment, performance in results:
+                comp_name = performance.competition
                 
-                # Определяем тип оценки и выбираем соответствующую структуру
-                if assessment.type == 'EXECUTION':
-                    stats_type = referee_stats[referee.id]['execution']
-                elif assessment.type == 'ARTISTIC':
-                    stats_type = referee_stats[referee.id]['artistic']
+                # Определяем тип оценки
+                if assessment.type == Types.EXECUTION:
+                    stats_type = competition_stats[comp_name]['execution']
+                elif assessment.type == Types.ARTISTIC:
+                    stats_type = competition_stats[comp_name]['artistic']
                 else:
-                    continue  # Игнорируем другие типы
+                    continue
                 
-                # Увеличиваем счетчик
-                stats_type['total'] += 1
-                
-                # 1. Анализ точности
-                deviation = assessment.referee_assessment - assessment.result_type_assessment
-                stats_type['deviation_sum'] += deviation
-                
-                accuracy_category = self.get_accuracy_category(
-                    assessment.referee_assessment, 
+                # Проверяем, попадает ли оценка в допустимое отклонение
+                is_within = self.is_within_tolerance(
+                    assessment.referee_assessment,
                     assessment.result_type_assessment
                 )
-                stats_type[accuracy_category] += 1
                 
-                # 2. Анализ предвзятости
-                # Определяем, является ли спортсмен "своим"
-                is_own = False
-                if performance.competition_type == "RUSSIA":
-                    is_own = (performance.region == referee.region)
-                elif performance.competition_type == "REGION":
-                    is_own = (performance.city == referee.city)
-                # Для городских соревнований (если появятся) - по city или клубу
-                else:
-                    is_own = (performance.city == referee.city)
+                stats_type['total'] += 1
+                if is_within:
+                    stats_type['within'] += 1
+            
+            # Рассчитываем проценты по каждому соревнованию
+            by_competition = {}
+            total_execution_within = 0
+            total_execution_all = 0
+            total_artistic_within = 0
+            total_artistic_all = 0
+            
+            for comp_name, stats in competition_stats.items():
+                exec_stats = stats['execution']
+                art_stats = stats['artistic']
                 
-                # Добавляем отклонение в соответствующую корзину
-                if is_own:
-                    stats_type['bias_own_sum'] += deviation
-                    stats_type['bias_own_count'] += 1
-                else:
-                    stats_type['bias_other_sum'] += deviation
-                    stats_type['bias_other_count'] += 1
+                exec_percent = (exec_stats['within'] / exec_stats['total'] * 100) if exec_stats['total'] > 0 else 0
+                art_percent = (art_stats['within'] / art_stats['total'] * 100) if art_stats['total'] > 0 else 0
+                
+                by_competition[comp_name] = {
+                    'execution': round(exec_percent, 1),
+                    'artistic': round(art_percent, 1),
+                    'execution_count': exec_stats['total'],
+                    'artistic_count': art_stats['total']
+                }
+                
+                # Суммируем для общего среднего
+                total_execution_within += exec_stats['within']
+                total_execution_all += exec_stats['total']
+                total_artistic_within += art_stats['within']
+                total_artistic_all += art_stats['total']
             
-            # Финальные расчеты для каждого судьи
-            for referee_id, stats in referee_stats.items():
-                for assessment_type in ['execution', 'artistic']:
-                    data = stats[assessment_type]
-                    
-                    if data['total'] > 0:
-                        # Процент точности (bullseye + acceptable)
-                        data['accuracy_rate'] = (
-                            (data['bullseye'] + data['acceptable']) / data['total']
-                        )
-                        
-                        # Процент попадания в яблочко
-                        data['bullseye_rate'] = data['bullseye'] / data['total']
-                        
-                        # Среднее отклонение
-                        data['avg_deviation'] = data['deviation_sum'] / data['total']
-                        
-                        # Предвзятость
-                        avg_own = (data['bias_own_sum'] / data['bias_own_count'] 
-                                  if data['bias_own_count'] > 0 else 0)
-                        avg_other = (data['bias_other_sum'] / data['bias_other_count'] 
-                                    if data['bias_other_count'] > 0 else 0)
-                        data['bias'] = avg_other - avg_own
-                        
-                        # Интерпретация предвзятости
-                        if abs(data['bias']) < 0.05:
-                            data['bias_interpretation'] = 'Объективен'
-                        elif data['bias'] < 0:
-                            data['bias_interpretation'] = f'Завышает своим на {abs(data["bias"]):.2f}'
-                        else:
-                            data['bias_interpretation'] = f'Завышает чужим на {data["bias"]:.2f}'
-                    else:
-                        data['accuracy_rate'] = 0
-                        data['bullseye_rate'] = 0
-                        data['avg_deviation'] = 0
-                        data['bias'] = 0
-                        data['bias_interpretation'] = 'Нет данных'
+            # Общие средние проценты по всем соревнованиям
+            avg_execution = (total_execution_within / total_execution_all * 100) if total_execution_all > 0 else 0
+            avg_artistic = (total_artistic_within / total_artistic_all * 100) if total_artistic_all > 0 else 0
             
-            return referee_stats"""
+            return {
+                'execution': round(avg_execution, 1),
+                'artistic': round(avg_artistic, 1),
+                'by_competition': by_competition,
+                'total_assessments': {
+                    'execution': total_execution_all,
+                    'artistic': total_artistic_all
+                }
+            }
