@@ -13,7 +13,7 @@ async function request(
   data?: any,
   headers?: HeadersInit
 ): Promise<APIResponce> {
-  const baseUrl = "http://26.179.77.199:8000"; //"http://26.179.77.199:8000" "http://127.0.0.1:8000"
+  const baseUrl = "http://127.0.0.1:8000"; //"http://26.179.77.199:8000" "http://127.0.0.1:8000"
   const fullUrl = `${baseUrl}${url}`;
 
   // Настройки запроса
