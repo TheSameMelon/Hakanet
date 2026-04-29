@@ -21,6 +21,7 @@ export default function UploadPage() {
 
   const [dragActive, setDragActive] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const triggerError = () => {
@@ -41,24 +42,44 @@ export default function UploadPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Проверка: загружен ли хоть один файл вообще?
-  const hasAnyFiles = Object.values(files).some(file => file !== null);
+  // Проверка: загружены ли ВСЕ ТРИ файла
+  const canUpload = files.referee && files.performance && files.score;
 
-  const handleGlobalUpload = () => {
-    if (!hasAnyFiles) return;
+  const handleGlobalUpload = async () => {
+    if (!canUpload) {
+      alert("Необходимо выбрать все три файла!");
+      return;
+    }
 
-    // Собираем список того, что отправляем
-    const toUpload = Object.entries(files)
-      .filter(([_, file]) => file !== null)
-      .map(([type, file]) => `${type}: ${file?.name}`);
-
-    console.log("Отправка пакета данных:", toUpload);
-
-    // Полная очистка всех вкладок
-    setFiles({ referee: null, performance: null, score: null });
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setIsUploading(true);
+    const formData = new FormData();
     
-    alert(`Успешно отправлено файлов: ${toUpload.length}`);
+    // ВНИМАНИЕ: Ключи строго по твоему бэкенду
+    formData.append('refreree', files.referee as File);
+    formData.append('performance', files.performance as File);
+    formData.append('assessments', files.score as File);
+
+    try {
+      const response = await fetch('http://localhost:8000/upload', {
+        method: 'POST',
+        body: formData,
+        // Content-Type НЕ СТАВИМ, браузер сделает это сам
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert('Данные успешно загружены!');
+        setFiles({ referee: null, performance: null, score: null });
+      } else {
+        const error = await response.json();
+        alert(`Ошибка сервера: ${JSON.stringify(error.detail)}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Ошибка сети или сервер недоступен');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const currentFile = files[selectedType];
@@ -123,13 +144,12 @@ export default function UploadPage() {
             </label>
           </div>
 
-          {/* ОБЩАЯ КНОПКА ОТПРАВКИ */}
           <button 
             className={styles.sendBtn} 
-            disabled={!hasAnyFiles} 
+            disabled={!canUpload || isUploading} 
             onClick={handleGlobalUpload}
           >
-            Отправить всё выбранное
+            {isUploading ? 'Загрузка...' : 'Отправить все данные'}
           </button>
         </div>
       </main>

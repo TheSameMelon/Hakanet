@@ -1,0 +1,278 @@
+/* page.module.css */
+
+.pageWrapper {
+  padding: 40px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: sans-serif;
+  width: 100%; /* Занимаем всю ширину */
+  box-sizing: border-box;
+}
+
+/* Убираем фиксированный max-width и центрирование, разрешаем растягиваться */
+.container {
+  width: 100%;
+  margin: 0; 
+}
+
+.header {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+/* Кнопка Назад (стиль из профиля судьи) */
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #155DFC;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.iconCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #155DFC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover .iconCircle {
+  transform: translateX(-5px);
+  background-color: rgba(21, 93, 252, 0.1);
+}
+
+/* Заголовок */
+.heroSection {
+  margin-bottom: 40px;
+}
+
+.heroSection h1 {
+  font-size: 38px;
+  font-weight: 900;
+  color: #1e293b;
+  margin: 0;
+}
+
+.subTitle {
+  color: #64748b;
+  font-size: 18px;
+  margin-top: 8px;
+}
+
+/* СЕТКА KPI - ТЕПЕРЬ НА ВСЮ ШИРИНУ */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Три равные колонки */
+  gap: 24px;
+  margin-bottom: 40px;
+  width: 100%;
+}
+
+.statCard {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+.value {
+  font-size: 48px; /* Сделал покрупнее раз места много */
+  font-weight: 900;
+  color: #155DFC;
+}
+
+.textRed { color: #ef4444 !important; }
+
+/* ФИЛЬТРЫ - ТЕПЕРЬ ТОЖЕ ШИРОКИЕ */
+.filterSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.filterBlock {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.filterLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  color: #1e293b;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.tagsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  background: #f1f5f9;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tag:hover { background: #e2e8f0; }
+
+.tagActive {
+  background: #155DFC;
+  color: white;
+}
+
+/* РЕЗУЛЬТАТЫ */
+.resultsTitle {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 24px;
+}
+
+.categoryCard {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.catHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.catAge {
+  font-size: 22px;
+  font-weight: 900;
+  color: #1e293b;
+  margin-right: 15px;
+}
+
+.catDiscipline {
+  background: #155DFC;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.catBias {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1e293b; 
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.judgeScoresRow {
+  display: flex;
+  gap: 50px;
+  margin-bottom: 24px;
+}
+
+.judgeBox { display: flex; flex-direction: column; gap: 6px; }
+.jNum { font-size: 12px; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
+.jScore { font-size: 22px; font-weight: 900; color: #1e293b; }
+
+.catFooter {
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 700;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Адаптивность для узких экранов */
+@media (max-width: 1200px) {
+  .judgeScoresRow { gap: 20px; }
+}
+
+@media (max-width: 900px) {
+  .statsGrid, .filterSection {
+    grid-template-columns: 1fr;
+  }
+}
+
+.resultsTitle {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0; /* Убираем margin, чтобы не ломать flexbox центрирование */
+}
+
+/* Стилизация Кнопки Сброса (фон, обводка, текст) */
+.resetLink {
+  background-color: #ef4444; /* Красный фон */
+  color: white; /* Белый текст */
+  border: none;
+  padding: 10px 24px; /* Внутренние отступы */
+  border-radius: 12px; /* Скругление углов */
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); /* Легкая тень */
+}
+
+/* Эффекты при наведении и нажатии */
+.resetLink:hover {
+  background-color: #dc2626; /* Более темный красный при наведении */
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px); /* Легкий подъем */
+}
+
+.resetLink:active {
+  background-color: #b91c1c; /* Ещё темнее при нажатии */
+  transform: translateY(1px); /* Легкое нажатие */
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
+}
+
+/* Убираем подчеркивание, если оно было */
+.resetLink {
+  padding: 10px 24px; /* 10px сверху/снизу и 24px слева/справа */
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  margin-top: 32px;    /* Отступ сверху (от фильтров) */
+  margin-bottom: 32px; /* ВОТ ЭТО добавит пустое пространство ДО таблицы/карточек */
+  
+  width: 100%;
+}

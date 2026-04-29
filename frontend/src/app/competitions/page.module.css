@@ -1,0 +1,162 @@
+.layoutWrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 40px;
+  margin-left: 80px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.contentExpanded {
+  margin-left: 260px;
+}
+
+.header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 48px;
+}
+
+/* --- ПОИСК КАК У СУДЕЙ --- */
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 320px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.searchWrapper[data-focused="true"] {
+  width: 450px;
+}
+
+.searchInput {
+  width: 100%;
+  height: 48px;
+  padding: 0 45px 0 20px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(21, 93, 252, 0.2);
+  border-radius: 24px;
+  font-size: 16px;
+  outline: none;
+  color: #1a1a1a;
+}
+
+.searchWrapper[data-focused="true"] .searchInput {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #155DFC;
+  box-shadow: 0 0 15px rgba(21, 93, 252, 0.3);
+  animation: neonPulse 2s infinite ease-in-out;
+}
+
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 5px rgba(21, 93, 252, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(21, 93, 252, 0.5); }
+  100% { box-shadow: 0 0 5px rgba(21, 93, 252, 0.2); }
+}
+
+.searchIcon {
+  position: absolute;
+  right: 15px;
+  color: #155DFC;
+  font-size: 18px;
+}
+
+/* --- ТАБЛИЦА ПЛИТКАМИ --- */
+.tableWrapper {
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+}
+
+.table th {
+  background-color: #155DFC;
+  color: #ffffff;
+  text-align: left;
+  padding: 16px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.table th:first-child { border-radius: 12px 0 0 12px; }
+.table th:last-child { border-radius: 0 12px 12px 0; }
+
+.clickableRow {
+  cursor: pointer;
+  background-color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.clickableRow:hover {
+  background: linear-gradient(90deg, #f0f7ff 0%, #ffffff 50%, #f0f7ff 100%);
+  transform: scale(1.01) translateY(-2px);
+  box-shadow: 0 10px 25px rgba(21, 93, 252, 0.15);
+  z-index: 10;
+}
+
+.table td {
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table td:first-child { border-left: 1px solid #e2e8f0; border-radius: 12px 0 0 12px; }
+.table td:last-child { border-right: 1px solid #e2e8f0; border-radius: 0 12px 12px 0; }
+
+.nameCell {
+  color: #155DFC;
+  font-weight: 700;
+}
+
+/* --- ПРОГРЕСС-БАРЫ --- */
+.statContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.statInfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.percent {
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.infoCell {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+}
