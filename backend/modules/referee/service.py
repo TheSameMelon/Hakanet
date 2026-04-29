@@ -1,22 +1,27 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, select, delete
 from core.types import Referee, Rating
 from data.database import engine
 import pathlib
 import csv
+import io
 
 class RefereeService:
     def __init__(self):
         self.engine = engine
         self.path = pathlib.Path(__file__).parent.parent.parent / "data/referee.csv"
     
-    def read(self):
+    def read(self, force=False):
         with Session(self.engine) as session:
+            if force:
+                session.exec(delete(Referee))
+                session.commit()
+            
             test = session.exec(select(Referee)).first()
             if test != None:
-                print("REFEREES ALREADY FETCHED")
+                print("REFEREE ALREADY FETCHED")
                 return
-            session.close()
-        with open(self.path, encoding="utf-8") as file:
+        session.close()
+        with open(self.path, encoding="utf-8-sig") as file:
             reader = csv.reader(file)
             arr = [Referee(id=i[0], fio=i[1], region=i[2], city=i[3]) for i in reader]
 
@@ -55,3 +60,15 @@ class RefereeService:
         except Exception as e:
             print(repr(e))
             return None
+        
+    def upload(self, file: bytes):
+        try:
+            b = io.BytesIO(file)
+            text = io.TextIOWrapper(b, "utf-8-sig")
+            with open(self.path, mode="w", encoding="utf-8-sig") as f:
+                f.write(text.read())
+        except Exception as e:
+            print(repr(e))
+            return
+        print("REFEREE UPLOADED")
+        self.read(force=True)

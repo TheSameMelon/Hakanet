@@ -1,22 +1,26 @@
 from data.database import engine
-from sqlmodel import Session, select
+from sqlmodel import Session, select,delete
 from core.types import APIResponce, Assessment
 import csv
 import pathlib
+import io
 
 class AssessmentService:
     def __init__(self):
         self.engine = engine
         self.path = pathlib.Path(__file__).parent.parent.parent / "data/assessments.csv"
     
-    def read(self):
+    def read(self, force=True):
         with Session(self.engine) as session:
+            if force:
+                session.exec(delete(Assessment))
+                session.commit()
             test = session.exec(select(Assessment)).first()
             if test != None:
                 print("ASSESSMENTS ALREADY FETCHED")
                 return
-            session.close()
-        with open(self.path) as file:
+        session.close()
+        with open(self.path, encoding="utf-8-sig") as file:
             reader = csv.reader(file)
             arr = [Assessment(id=i[0], referee_id=i[1], performance_id=i[2],type=i[3] ,number=i[4], referee_assessment=i[5], result_type_assessment=i[6], result_assessment=i[7]) for i in reader]
 
@@ -34,3 +38,14 @@ class AssessmentService:
             print(repr(e))
             return None
     
+    def upload(self, file: bytes):
+        try:
+            b = io.BytesIO(file)
+            text = io.TextIOWrapper(b, "utf-8-sig")
+            with open(self.path, mode="w", encoding="utf-8-sig") as f:
+                f.write(text.read())
+        except Exception as e:
+            print(repr(e))
+            return
+        print("ASSESSMENTS UPLOADED")
+        self.read(force=True)
