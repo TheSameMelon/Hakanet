@@ -49,7 +49,7 @@ export default function Page() {
     <div className={styles.layoutWrapper}>
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      <main className={`${styles.mainContent} ${isCollapsed ? styles.contentCollapsed : ''}`}>
+      <main className={`${styles.mainContent} ${isCollapsed ? styles.contentCollapsed : styles.contentExpanded}`}>
         <header className={styles.header}>
           <div className={styles.controls}>
             {/* Контейнер поиска */}
