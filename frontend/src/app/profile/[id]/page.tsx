@@ -146,123 +146,140 @@ export default function ProfilePage() {
   if (!user) return <div className={styles.pageWrapper}><h3>Судья не найден</h3></div>;
 
   return (
-    <div className={styles.pageWrapper}>
-      <header className={styles.header}>
-        <Link href="/judges" className={styles.backButton}>
-          <div className={styles.iconCircle}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-          </div>
-          <span>Назад к списку</span>
-        </Link>
-      </header>
+  <div className={styles.pageWrapper}>
+    <header className={styles.header}>
+      <Link href="/judges" className={styles.backButton}>
+        <div className={styles.iconCircle}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+        </div>
+        <span>Назад к списку</span>
+      </Link>
+    </header>
 
-      <main className={styles.main}>
-        <section className={styles.personalInfo}>
-          <h1>{user.fio}</h1>
-          <p>{user.region || 'Регион'}, {user.city || 'Город'}</p>
-        </section>
+    <main className={styles.main}>
+      <section className={styles.personalInfo}>
+        <h1>{user.fio}</h1>
+        <p>{user.region || 'Регион'}, {user.city || 'Город'}</p>
+      </section>
 
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <span className={styles.label}>Кол-во выходов</span>
-            <div className={styles.value}>{user.performances?.length || 0}</div>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <span className={styles.label}>Кол-во выходов</span>
+          <div className={styles.value}>{user.performances?.length || 0}</div>
+        </div>
+        
+        <div className={styles.statCard}>
+          <span className={styles.label}>Артистизм (Accuracy)</span>
+          <div className={styles.value}>
+            {dispersion?.artistic?.accuracy_rate ? (dispersion.artistic.accuracy_rate * 100).toFixed(1) + '%' : '—'}
           </div>
-          
-          <div className={styles.statCard}>
-            <span className={styles.label}>Артистизм (Accuracy)</span>
-            <div className={styles.value}>
-              {dispersion?.artistic?.accuracy_rate ? (dispersion.artistic.accuracy_rate * 100).toFixed(1) + '%' : '—'}
-            </div>
-            <span className={`${styles.subStatus} ${dispersion?.artistic?.bias_interpretation === 'Объективен' ? styles.statusSuccess : ''}`}>
-              {dispersion?.artistic?.bias_interpretation || 'Нет данных'}
-            </span>
-          </div>
+          <span className={`${styles.subStatus} ${dispersion?.artistic?.bias_interpretation === 'Объективен' ? styles.statusSuccess : ''}`}>
+            {dispersion?.artistic?.bias_interpretation || 'Нет данных'}
+          </span>
+        </div>
 
-          <div className={styles.statCard}>
-            <span className={styles.label}>Исполнение (Accuracy)</span>
-            <div className={styles.value}>
-              {dispersion?.execution?.accuracy_rate > 0 ? (dispersion.execution.accuracy_rate * 100).toFixed(1) + '%' : '—'}
-            </div>
-            <span className={`${styles.subStatus} ${dispersion?.execution?.bias_interpretation === 'Объективен' ? styles.statusSuccess : ''}`}>
-              {dispersion?.execution?.bias_interpretation || 'Нет данных'}
-            </span>
+        <div className={styles.statCard}>
+          <span className={styles.label}>Исполнение (Accuracy)</span>
+          <div className={styles.value}>
+            {dispersion?.execution?.accuracy_rate > 0 ? (dispersion.execution.accuracy_rate * 100).toFixed(1) + '%' : '—'}
           </div>
+          <span className={`${styles.subStatus} ${dispersion?.execution?.bias_interpretation === 'Объективен' ? styles.statusSuccess : ''}`}>
+            {dispersion?.execution?.bias_interpretation || 'Нет данных'}
+          </span>
+        </div>
 
-          {/* ИСПРАВЛЕННАЯ КАРТОЧКА: СТРОГОСТЬ (3 параметра) */}
-          <div className={styles.statCard}>
-            <span className={styles.label}>Строгость (Severity)</span>
-            {strictness ? (
-              <div className={styles.strictnessDetails}>
-                {[
-                  { id: 'weak', label: 'Weak' },
-                  { id: 'medium', label: 'Medium' },
-                  { id: 'strong', label: 'Strong' }
-                ].map((item) => (
-                  <div key={item.id} className={styles.strictItem}>
-                    <span className={styles.miniLabel}>{item.label}:</span>
-                    <span className={`${styles.miniValue} ${strictness[item.id]?.verdict === 'объективен' ? styles.statusSuccess : ''}`}>
-                      {strictness[item.id] 
-                        ? `${(strictness[item.id].severity).toFixed(1)} (${strictness[item.id].verdict})` 
+        {/* ОБНОВЛЕННАЯ КАРТОЧКА: СТРОГОСТЬ (Две колонки цифр) */}
+        <div className={styles.statCard}>
+          <span className={styles.label}>Строгость (Severity)</span>
+          {strictness ? (
+            <div className={styles.strictnessContainer}>
+              <div className={styles.strictHeader}>
+                <span className={styles.miniLabel}>Level</span>
+                <div className={styles.dualValues}>
+                  <span className={styles.miniLabel}>Exec</span>
+                  <span className={styles.miniLabel}>Art</span>
+                </div>
+              </div>
+              
+              {[
+                { id: 'weak', label: 'Weak' },
+                { id: 'medium', label: 'Medium' },
+                { id: 'strong', label: 'Strong' }
+              ].map((item) => (
+                <div key={item.id} className={styles.strictItem}>
+                  <span className={styles.miniLabel}>{item.label}:</span>
+                  <div className={styles.dualValues}>
+                    {/* Колонка Execution */}
+                    <span className={`${styles.miniValue} ${strictness.execution?.[item.id]?.verdict === 'объективен' ? styles.statusSuccess : ''}`}>
+                      {strictness.execution?.[item.id] 
+                        ? (strictness.execution[item.id].severity).toFixed(2) 
+                        : '—'}
+                    </span>
+                    {/* Колонка Artistic */}
+                    <span className={`${styles.miniValue} ${strictness.artistic?.[item.id]?.verdict === 'объективен' ? styles.statusSuccess : ''}`}>
+                      {strictness.artistic?.[item.id] 
+                        ? (strictness.artistic[item.id].severity).toFixed(2) 
                         : '—'}
                     </span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.value}>—</div>
+          )}
+        </div>
+      </div>
+
+      <section className={styles.historySection} style={{ marginBottom: '48px' }}>
+        <div className={styles.tableHeader}>
+          <div className={styles.col}>Регион уч.</div>
+          <div className={styles.col}>Город уч.</div>
+          <div className={styles.col}>Соревнование</div>
+          <div className={styles.col}>Категория</div>
+          <div className={styles.col}>Дисциплина</div>
+          <div className={styles.col}>Оценка (diff)</div>
+        </div>
+        <div className={styles.tableScrollContainer}>
+          <div className={styles.tableBody}>
+            {user.performances?.length > 0 ? (
+              user.performances.map((p, i) => (
+                <div key={i} className={styles.tableRow}>
+                  <div className={styles.col}>{p.region || '—'}</div>
+                  <div className={styles.col}>{p.city || '—'}</div>
+                  <div className={styles.col}>{p.competition || '—'}</div>
+                  <div className={styles.col}>{p.age_category || '—'}</div>
+                  <div className={styles.col}>{p.discipline || '—'}</div>
+                  <div className={`${styles.col} ${styles.ratingCell}`}>
+                    <span className={getRatingClass(p.diff)}>
+                      {p.mark} ({p.diff > 0 ? `+${p.diff.toFixed(2)}` : p.diff.toFixed(2)})
+                    </span>
+                  </div>
+                </div>
+              ))
             ) : (
-              <div className={styles.value}>—</div>
+              <div className={styles.emptyTable}>История отсутствует</div>
             )}
           </div>
         </div>
+      </section>
 
-        <section className={styles.historySection} style={{ marginBottom: '48px' }}>
-          <div className={styles.tableHeader}>
-            <div className={styles.col}>Регион уч.</div>
-            <div className={styles.col}>Город уч.</div>
-            <div className={styles.col}>Соревнование</div>
-            <div className={styles.col}>Категория</div>
-            <div className={styles.col}>Дисциплина</div>
-            <div className={styles.col}>Оценка (diff)</div>
-          </div>
-          <div className={styles.tableScrollContainer}>
-            <div className={styles.tableBody}>
-              {user.performances?.length > 0 ? (
-                user.performances.map((p, i) => (
-                  <div key={i} className={styles.tableRow}>
-                    <div className={styles.col}>{p.region || '—'}</div>
-                    <div className={styles.col}>{p.city || '—'}</div>
-                    <div className={styles.col}>{p.competition || '—'}</div>
-                    <div className={styles.col}>{p.age_category || '—'}</div>
-                    <div className={styles.col}>{p.discipline || '—'}</div>
-                    <div className={`${styles.col} ${styles.ratingCell}`}>
-                      <span className={getRatingClass(p.diff)}>
-                        {p.mark} ({p.diff > 0 ? `+${p.diff.toFixed(2)}` : p.diff.toFixed(2)})
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyTable}>История отсутствует</div>
-              )}
-            </div>
+      {prepareHeatmapSeries().length > 0 ? (
+        <section className={styles.heatmapSection} style={{ paddingBottom: '40px' }}>
+          <h3 className={styles.heatmapTitle}>Дисперсия оценок по регионам участников</h3>
+          <div className={styles.chartContainer}>
+            <Chart options={heatmapOptions} series={prepareHeatmapSeries()} type="heatmap" height={300} />
           </div>
         </section>
-
-        {prepareHeatmapSeries().length > 0 ? (
-          <section className={styles.heatmapSection} style={{ paddingBottom: '40px' }}>
-            <h3 className={styles.heatmapTitle}>Дисперсия оценок по регионам участников</h3>
-            <div className={styles.chartContainer}>
-              <Chart options={heatmapOptions} series={prepareHeatmapSeries()} type="heatmap" height={300} />
-            </div>
-          </section>
-        ) : (
-          <div className={styles.statCard} style={{ textAlign: 'center', color: '#94a3b8' }}>
-            Данные для анализа регионов отсутствуют
-          </div>
-        )}
-      </main>
-    </div>
-  );
+      ) : (
+        <div className={styles.statCard} style={{ textAlign: 'center', color: '#94a3b8' }}>
+          Данные для анализа регионов отсутствуют
+        </div>
+      )}
+    </main>
+  </div>
+);
 }
