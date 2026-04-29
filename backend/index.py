@@ -11,8 +11,8 @@ from modules.assessments.route import router as AssessmentsRouter
 from modules.referee.route import router as RefereeRouter
 from modules.performances.route import router as PerformancesRouter
 from modules.rating.route import router as DispersionRouter
-#from core.settings import settings
 from modules.upload.route import router as UploadRouter
+from modules.competitions.route import router as CompetitionRouter
 
 from modules.assessments.service import AssessmentService
 from modules.referee.service import RefereeService
@@ -46,6 +46,7 @@ server.include_router(RefereeRouter, prefix="/referee", tags=["Судьи"])
 server.include_router(PerformancesRouter, prefix="/performances", tags=["Выступления"])
 server.include_router(DispersionRouter, prefix="/dispersion", tags=["Отклонения"])
 server.include_router(UploadRouter, prefix="/upload", tags=["Загрузка"])
+# server.include_router(CompetitionRouter, prefix="/competition", tags=["Соревнования"])
 
 
 SQLModel.metadata.create_all(engine)
