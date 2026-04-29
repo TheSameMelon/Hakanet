@@ -19,3 +19,17 @@ def performances():
     if not data:
         return APIResponce(status="error")
     return APIResponce(status="success", data=data)
+
+@router.get("/competitions/")
+def performances():
+    data = service.get_competition_stats()
+    if not data:
+        return APIResponce(status="error")
+    return APIResponce(status="success", data=data)
+
+@router.get("/competitions/{comp}")
+def performances(comp: str):
+    data = service.get_competition_detail_stats(comp)
+    if not data:
+        return APIResponce(status="error")
+    return APIResponce(status="success", data=data)

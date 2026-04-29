@@ -512,3 +512,179 @@ class DispersionService:
                     'artistic': total_artistic_all
                 }
             }
+    
+    
+    def get_competition_detail_stats(self, competition_name: str) -> Dict:
+        """
+        Детальная статистика по соревнованию (раздел 5.2)
+        """
+        with Session(self.engine) as session:
+            # Загружаем данные
+            stmt = select(Performance, Assessment, Referee).join(
+                Assessment, Assessment.performance_id == Performance.id
+            ).join(
+                Referee, Assessment.referee_id == Referee.id
+            ).where(Performance.competition == competition_name)
+            
+            results = session.exec(stmt).all()
+            
+            # Структуры для сбора данных
+            disciplines = set()
+            age_categories = set()
+            categories = {}
+            
+            # Для расчета общих индикаторов
+            exec_within = 0
+            exec_total = 0
+            art_within = 0
+            art_total = 0
+            
+            # Для коэффициента девиации:
+            # Группируем отклонения по выступлениям
+            performance_max_deviations = {}  # {performance_id: {'execution': max_dev, 'artistic': max_dev}}
+            
+            for performance, assessment, referee in results:
+                # Собираем уникальные значения
+                disciplines.add(performance.discipline)
+                age_categories.add(performance.age_category)
+                
+                # Группируем по категориям
+                cat_key = f"{performance.age_category}|{performance.discipline}"
+                if cat_key not in categories:
+                    categories[cat_key] = {
+                        'age_category': performance.age_category,
+                        'discipline': performance.discipline,
+                        'assessments': [],
+                        'judge_scores': {},
+                        'bias_data': {'own': [], 'other': []}
+                    }
+                
+                # Сохраняем оценку для категории
+                deviation = assessment.referee_assessment - assessment.result_type_assessment
+                abs_deviation = abs(deviation)
+                
+                categories[cat_key]['assessments'].append({
+                    'referee_id': referee.id,
+                    'referee_number': assessment.number,
+                    'type': assessment.type,
+                    'score': assessment.referee_assessment,
+                    'final': assessment.result_type_assessment,
+                    'deviation': deviation,
+                    'abs_deviation': abs_deviation,
+                    'region': performance.region,
+                    'city': performance.city,
+                    'referee_region': referee.region,
+                    'referee_city': referee.city,
+                    'competition_type': performance.competition_type,
+                    'performance_id': performance.id
+                })
+                
+                # ====== Расчет точности (общие индикаторы) ======
+                if assessment.type == 'EXECUTION':
+                    exec_total += 1
+                    if self.is_within_tolerance(assessment.referee_assessment, assessment.result_type_assessment):
+                        exec_within += 1
+                elif assessment.type == 'ARTISTIC':
+                    art_total += 1
+                    if self.is_within_tolerance(assessment.referee_assessment, assessment.result_type_assessment):
+                        art_within += 1
+                
+                # ====== Для коэффициента девиации ======
+                # Инициализируем структуру для выступления, если ещё нет
+                if performance.id not in performance_max_deviations:
+                    performance_max_deviations[performance.id] = {
+                        'execution': 0,
+                        'artistic': 0
+                    }
+                
+                # Обновляем максимальное отклонение для этого выступления
+                if assessment.type == 'EXECUTION':
+                    if abs_deviation > performance_max_deviations[performance.id]['execution']:
+                        performance_max_deviations[performance.id]['execution'] = abs_deviation
+                elif assessment.type == 'ARTISTIC':
+                    if abs_deviation > performance_max_deviations[performance.id]['artistic']:
+                        performance_max_deviations[performance.id]['artistic'] = abs_deviation
+            
+            # ====== Расчет общих индикаторов ======
+            exec_percent = (exec_within / exec_total * 100) if exec_total > 0 else 0
+            art_percent = (art_within / art_total * 100) if art_total > 0 else 0
+            
+            # ====== Расчет коэффициента девиации для соревнования ======
+            # Собираем все максимальные отклонения по выступлениям
+            execution_max_deviations = []
+            artistic_max_deviations = []
+            
+            for perf_id, deviations in performance_max_deviations.items():
+                if deviations['execution'] > 0:
+                    execution_max_deviations.append(deviations['execution'])
+                if deviations['artistic'] > 0:
+                    artistic_max_deviations.append(deviations['artistic'])
+            
+            # Коэффициент девиации = среднее арифметическое максимальных отклонений
+            execution_deviation_coef = sum(execution_max_deviations) / len(execution_max_deviations) if execution_max_deviations else 0
+            artistic_deviation_coef = sum(artistic_max_deviations) / len(artistic_max_deviations) if artistic_max_deviations else 0
+            
+            # Общий коэффициент девиации (средний между исполнением и артистизмом)
+            overall_deviation_coef = (execution_deviation_coef + artistic_deviation_coef) / 2
+            
+            # ====== Расчет статистики по категориям ======
+            categories_stats = {}
+            for cat_key, cat_data in categories.items():
+                # Средние оценки каждого судьи по номерам
+                judge_scores = {}
+                for assessment in cat_data['assessments']:
+                    judge_num = assessment['referee_number']
+                    if judge_num not in judge_scores:
+                        judge_scores[judge_num] = {'sum': 0, 'count': 0}
+                    judge_scores[judge_num]['sum'] += assessment['score']
+                    judge_scores[judge_num]['count'] += 1
+                
+                # Усредняем
+                for judge_num in judge_scores:
+                    judge_scores[judge_num] = round(judge_scores[judge_num]['sum'] / judge_scores[judge_num]['count'], 2)
+                
+                # Коэффициент предвзятости по категории
+                own_deviations = []
+                other_deviations = []
+                
+                for assessment in cat_data['assessments']:
+                    # Определяем "свой/чужой"
+                    is_own = False
+                    if assessment['competition_type'] == 'RUSSIA':
+                        is_own = (assessment['region'] == assessment['referee_region'])
+                    elif assessment['competition_type'] == 'REGION':
+                        is_own = (assessment['city'] == assessment['referee_city'])
+                    
+                    deviation = assessment['deviation']
+                    if is_own:
+                        own_deviations.append(deviation)
+                    else:
+                        other_deviations.append(deviation)
+                
+                avg_own = sum(own_deviations) / len(own_deviations) if own_deviations else 0
+                avg_other = sum(other_deviations) / len(other_deviations) if other_deviations else 0
+                bias_coefficient = avg_other - avg_own
+                
+                categories_stats[cat_key] = {
+                    'age_category': cat_data['age_category'],
+                    'discipline': cat_data['discipline'],
+                    'avg_judge_scores': judge_scores,
+                    'bias_coefficient': round(bias_coefficient, 3),
+                    'assessments_count': len(cat_data['assessments'])
+                }
+            
+            return {
+                'competition': competition_name,
+                'disciplines': sorted(list(disciplines)),
+                'age_categories': sorted(list(age_categories)),
+                'overall': {
+                    'execution_tolerance_percentage': round(exec_percent, 1),
+                    'artistic_tolerance_percentage': round(art_percent, 1),
+                    'deviation_coefficient': {
+                        'execution': round(execution_deviation_coef, 3),
+                        'artistic': round(artistic_deviation_coef, 3),
+                        'overall': round(overall_deviation_coef, 3)
+                    }
+                },
+                'categories': categories_stats
+            }
