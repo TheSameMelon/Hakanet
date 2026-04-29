@@ -33,3 +33,10 @@ def performances(comp: str):
     if not data:
         return APIResponce(status="error")
     return APIResponce(status="success", data=data)
+
+@router.get("/heatmap/{id}")
+def heatmap(id: int):
+    data = service.get_referee_region_heatmap(id)
+    if not data:
+        return APIResponce(status="error")
+    return APIResponce(status="success", data=data)
