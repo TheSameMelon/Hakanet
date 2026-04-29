@@ -315,35 +315,55 @@ class DispersionService:
             
             return assessments_list
 
-    def get_referee_region_heatmap(self, referee_id: int, assessment_type: str = 'EXECUTION') -> Dict:
+    def get_referee_region_heatmap(self, referee_id: int) -> Dict:
         """
-        Тепловая карта "Судья x Регионы" (раздел 5.3)
+        Тепловая карта "Судья x Регионы" для обоих типов оценок (раздел 5.3)
+        Возвращает:
+        {
+            'execution': {'Москва': 0.09, 'СПб': -0.075, ...},
+            'artistic': {'Москва': 0.05, 'СПб': -0.02, ...}
+        }
         """
         with Session(self.engine) as session:
             stmt = select(Assessment, Performance).join(
                 Performance, Assessment.performance_id == Performance.id
             ).where(
-                Assessment.referee_id == referee_id,
-                Assessment.type == assessment_type
+                Assessment.referee_id == referee_id
             )
             
-
             results = session.exec(stmt).all()
             
-            region_stats = defaultdict(lambda: {'sum': 0.0, 'count': 0})
+            # Структура для хранения статистики по типам оценок
+            heatmap_data = {
+                'execution': defaultdict(lambda: {'sum': 0.0, 'count': 0}),
+                'artistic': defaultdict(lambda: {'sum': 0.0, 'count': 0})
+            }
             
             for assessment, performance in results:
+                # Определяем тип оценки
+                if assessment.type == 'EXECUTION':
+                    stats_type = heatmap_data['execution']
+                elif assessment.type == 'ARTISTIC':
+                    stats_type = heatmap_data['artistic']
+                else:
+                    continue
+                
                 region = performance.region
                 deviation = assessment.referee_assessment - assessment.result_type_assessment
-                region_stats[region]['sum'] += deviation
-                region_stats[region]['count'] += 1
+                
+                stats_type[region]['sum'] += deviation
+                stats_type[region]['count'] += 1
             
-            # Расчет среднего отклонения по регионам
-            heatmap_data = {}
-            for region, stats in region_stats.items():
-                heatmap_data[region] = stats['sum'] / stats['count'] if stats['count'] > 0 else 0
+            # Расчет средних отклонений
+            result = {}
+            for assessment_type in ['execution', 'artistic']:
+                result[assessment_type] = {}
+                for region, stats in heatmap_data[assessment_type].items():
+                    avg_deviation = stats['sum'] / stats['count'] if stats['count'] > 0 else 0
+                    # Округляем до 3 знаков для удобства
+                    result[assessment_type][region] = round(avg_deviation, 3)
             
-            return heatmap_data
+            return result
 
     def get_category_stats(self, competition: str, category: str = None) -> Dict:
         """
