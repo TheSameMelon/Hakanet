@@ -40,3 +40,10 @@ def heatmap(id: int):
     if not data:
         return APIResponce(status="error")
     return APIResponce(status="success", data=data)
+
+@router.get("/strictness/{referee_id}")
+def strictness(referee_id: int):
+    data = service.get_strictness_profile(referee_id)
+    if not data:
+        return APIResponce(status="error")
+    return APIResponce(status="success", data=data)
