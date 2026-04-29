@@ -13,7 +13,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const pathname = usePathname();
 
-  const isRefereesActive = pathname === '/' || pathname.startsWith('/profile');
+  const isRefereesActive = pathname === "/judges" || pathname.startsWith('/profile');
   const isCompetitionsActive = pathname.startsWith('/competitions');
   const isUploadActive = pathname.startsWith('/upload');
 
@@ -30,13 +30,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         </button>
       </div>
 
-      <div className={styles.logo}>
+      <Link href="/" className={styles.logo} style={{ textDecoration: 'none' }}>
         <span className={styles.logoText}>A{isCollapsed ? '' : 'EROBIC'}</span>
         <span className={styles.logoSubtext}>S{isCollapsed ? '✦' : 'PACE✦'}</span>
-      </div>
+      </Link>
 
       <nav className={styles.nav}>
-        <Link href="/" className={`${styles.navItem} ${isRefereesActive ? styles.active : ''}`}>
+        <Link href="/judges" className={`${styles.navItem} ${isRefereesActive ? styles.active : ''}`}>
           <span className={styles.icon}>👥</span>
           {!isCollapsed && <span className={styles.text}>Судьи</span>}
         </Link>

@@ -7,7 +7,6 @@ import styles from './page.module.css';
 import request from '@/core/api';
 import dynamic from 'next/dynamic';
 
-// Динамический импорт для предотвращения ошибок SSR
 const Chart = dynamic(() => import('react-apexcharts'), { 
   ssr: false,
   loading: () => <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>Загрузка аналитики...</div>
@@ -17,6 +16,7 @@ export default function ProfilePage() {
   const params = useParams();
   const [user, setUser] = useState<any>(null);
   const [dispersion, setDispersion] = useState<any>(null);
+  const [strictness, setStrictness] = useState<any>(null); // Новое состояние
   const [heatmapData, setHeatmapData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,11 +28,12 @@ export default function ProfilePage() {
       setError(null);
 
       try {
-        const [resProfile, resDispersion, resPerformances, resHeatmap] = await Promise.all([
+        const [resProfile, resDispersion, resPerformances, resHeatmap, resStrictness] = await Promise.all([
           request(`/referee/profile/${params.id}`, 'get'),
           request(`/dispersion/profile/${params.id}`, 'get'),
           request(`/performances/referee/${params.id}`, 'get'),
-          request(`/dispersion/heatmap/${params.id}`, 'get').catch(() => null)
+          request(`/dispersion/heatmap/${params.id}`, 'get').catch(() => null),
+          request(`/dispersion/strictness/${params.id}`, 'get').catch(() => null) // Новый запрос
         ]);
 
         if (resProfile?.status === "success") {
@@ -52,6 +53,10 @@ export default function ProfilePage() {
         if (resHeatmap?.status === "success") {
           setHeatmapData(resHeatmap.data);
         }
+
+        if (resStrictness?.status === "success") {
+          setStrictness(resStrictness.data);
+        }
       } catch (err) {
         setError("Ошибка связи с сервером");
       } finally {
@@ -61,15 +66,32 @@ export default function ProfilePage() {
     loadAllData();
   }, [params.id]);
 
+  // Расчет среднего вердикта строгости
+  const getStrictnessVerdict = () => {
+    if (!strictness) return 'Нет данных';
+    const categories = ['weak', 'medium', 'strong'];
+    const verdicts = categories
+      .map(cat => strictness[cat]?.verdict)
+      .filter(v => v && v !== 'объективен');
+    
+    return verdicts.length > 0 ? verdicts[0] : 'Объективен';
+  };
+
+  // Расчет средней тяжести (Severity)
+  const getAvgSeverity = () => {
+    if (!strictness) return null;
+    const vals = [strictness.weak?.severity, strictness.medium?.severity, strictness.strong?.severity]
+      .filter(v => v !== undefined);
+    if (vals.length === 0) return null;
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    return (avg * 100).toFixed(1) + '%';
+  };
+
   const prepareHeatmapSeries = () => {
     if (!heatmapData) return [];
-
     const execution = heatmapData.execution || {};
     const artistic = heatmapData.artistic || {};
-    
-    // Получаем все уникальные регионы из обоих объектов
     const regions = Array.from(new Set([...Object.keys(execution), ...Object.keys(artistic)]));
-
     if (regions.length === 0) return [];
 
     return [
@@ -91,15 +113,8 @@ export default function ProfilePage() {
   };
 
   const heatmapOptions: any = {
-    chart: {
-      type: 'heatmap',
-      toolbar: { show: false },
-      animations: { enabled: true }
-    },
-    dataLabels: {
-      enabled: true,
-      style: { colors: ['#fff'], fontSize: '12px', fontWeight: '600' }
-    },
+    chart: { type: 'heatmap', toolbar: { show: false }, animations: { enabled: true } },
+    dataLabels: { enabled: true, style: { colors: ['#fff'], fontSize: '12px', fontWeight: '600' } },
     plotOptions: {
       heatmap: {
         shadeIntensity: 0.5,
@@ -114,18 +129,9 @@ export default function ProfilePage() {
         }
       }
     },
-    xaxis: {
-      type: 'category',
-      labels: {
-        rotate: -45,
-        trim: true,
-        style: { fontSize: '11px', fontWeight: 500 }
-      }
-    },
+    xaxis: { type: 'category', labels: { rotate: -45, trim: true, style: { fontSize: '11px', fontWeight: 500 } } },
     grid: { padding: { bottom: 20 } },
-    tooltip: {
-      y: { formatter: (val: number) => `${val > 0 ? '+' : ''}${val} (откл.)` }
-    }
+    tooltip: { y: { formatter: (val: number) => `${val > 0 ? '+' : ''}${val} (откл.)` } }
   };
 
   const getRatingClass = (diff: number) => {
@@ -139,12 +145,10 @@ export default function ProfilePage() {
   if (error) return <div className={styles.pageWrapper}><h3 style={{color: 'red'}}>{error}</h3></div>;
   if (!user) return <div className={styles.pageWrapper}><h3>Судья не найден</h3></div>;
 
-  const series = prepareHeatmapSeries();
-
   return (
     <div className={styles.pageWrapper}>
       <header className={styles.header}>
-        <Link href="/" className={styles.backButton}>
+        <Link href="/judges" className={styles.backButton}>
           <div className={styles.iconCircle}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
@@ -160,12 +164,12 @@ export default function ProfilePage() {
           <p>{user.region || 'Регион'}, {user.city || 'Город'}</p>
         </section>
 
-        {/* Сводные карточки */}
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
             <span className={styles.label}>Кол-во выходов</span>
             <div className={styles.value}>{user.performances?.length || 0}</div>
           </div>
+          
           <div className={styles.statCard}>
             <span className={styles.label}>Артистизм (Accuracy)</span>
             <div className={styles.value}>{dispersion?.artistic?.accuracy_rate ? (dispersion.artistic.accuracy_rate * 100).toFixed(1) + '%' : '—'}</div>
@@ -173,6 +177,7 @@ export default function ProfilePage() {
               {dispersion?.artistic?.bias_interpretation || 'Нет данных'}
             </span>
           </div>
+
           <div className={styles.statCard}>
             <span className={styles.label}>Исполнение (Accuracy)</span>
             <div className={styles.value}>{dispersion?.execution?.accuracy_rate > 0 ? (dispersion.execution.accuracy_rate * 100).toFixed(1) + '%' : '—'}</div>
@@ -180,9 +185,17 @@ export default function ProfilePage() {
               {dispersion?.execution?.bias_interpretation || 'Нет данных'}
             </span>
           </div>
+
+          {/* НОВАЯ КАРТОЧКА: СТРОГОСТЬ */}
+          <div className={styles.statCard}>
+            <span className={styles.label}>Строгость (Severity)</span>
+            <div className={styles.value}>{getAvgSeverity() || '—'}</div>
+            <span className={`${styles.subStatus} ${getStrictnessVerdict() === 'Объективен' ? styles.statusSuccess : ''}`}>
+              {getStrictnessVerdict()}
+            </span>
+          </div>
         </div>
 
-        {/* Таблица истории */}
         <section className={styles.historySection} style={{ marginBottom: '48px' }}>
           <div className={styles.tableHeader}>
             <div className={styles.col}>Регион уч.</div>
@@ -194,7 +207,7 @@ export default function ProfilePage() {
           </div>
           <div className={styles.tableScrollContainer}>
             <div className={styles.tableBody}>
-              {user.performances && user.performances.length > 0 ? (
+              {user.performances?.length > 0 ? (
                 user.performances.map((p: any, i: number) => (
                   <div key={i} className={styles.tableRow}>
                     <div className={styles.col}>{p.region || '—'}</div>
@@ -216,17 +229,11 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Тепловая карта — Анализ отклонений по регионам */}
-        {series.length > 0 ? (
+        {prepareHeatmapSeries().length > 0 ? (
           <section className={styles.heatmapSection} style={{ paddingBottom: '40px' }}>
             <h3 className={styles.heatmapTitle}>Дисперсия оценок по регионам участников</h3>
             <div className={styles.chartContainer}>
-              <Chart 
-                options={heatmapOptions} 
-                series={series} 
-                type="heatmap" 
-                height={300} 
-              />
+              <Chart options={heatmapOptions} series={prepareHeatmapSeries()} type="heatmap" height={300} />
             </div>
           </section>
         ) : (
