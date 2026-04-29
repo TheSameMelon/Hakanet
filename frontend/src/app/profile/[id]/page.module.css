@@ -148,3 +148,47 @@
   .tableHeader { display: none; }
   .tableRow { grid-template-columns: 1fr; gap: 8px; }
 }
+
+/* Контейнер для прокрутки */
+.tableScrollContainer {
+  max-height: 360px; /* Высота 6 строк по ~60px */
+  overflow-y: auto;  /* Включаем вертикальный скролл */
+  background: white;
+}
+
+/* Настройка внешнего вида скроллбара (чтобы не был уродливым системным) */
+.tableScrollContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tableScrollContainer::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.tableScrollContainer::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+  border: 2px solid #f1f5f9;
+}
+
+/* Убираем border-bottom у самой последней строки, чтобы не двоился с краем карточки */
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: #f1f5f9;
+  cursor: default;
+}
+
+/* Чтобы шапка не "уплывала" и была ровно над контентом */
+.tableHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  /* остальные стили из предыдущего кода остаются */
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 0.8fr 1.2fr 1fr;
+  background: #1e293b;
+  padding: 15px 24px;
+}

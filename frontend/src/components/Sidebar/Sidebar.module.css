@@ -1,0 +1,73 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+.collapsed {
+  width: 80px;
+}
+
+.burgerWrapper {
+  margin-bottom: 30px;
+}
+
+.burgerBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.burgerBtn:hover { background-color: #f1f5f9; }
+
+.line {
+  width: 20px;
+  height: 2px;
+  background-color: #155DFC;
+  border-radius: 2px;
+}
+
+.logo {
+  margin-bottom: 40px;
+  padding-left: 10px;
+  font-family: var(--font-lexend), sans-serif;
+  white-space: nowrap;
+}
+
+.logoText { font-size: 22px; font-weight: 700; color: #155DFC; }
+.logoSubtext { font-size: 22px; font-weight: 700; color: #60A5FA; }
+
+.nav { display: flex; flex-direction: column; gap: 8px; }
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.active {
+  background-color: #eef6ff;
+  color: #155DFC !important;
+}
+
+.icon { min-width: 24px; font-size: 20px; text-align: center; }

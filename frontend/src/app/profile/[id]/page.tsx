@@ -26,7 +26,7 @@ export default function ProfilePage() {
         // 2. Статистика артистизма/исполнения
         const resDispersion = await request(`/dispersion/profile/${params.id}`, 'get');
 
-        // 3. История выступлений (твой новый эндпоинт)
+        // 3. История выступлений
         const resPerformances = await request(`/performances/referee/${params.id}`, 'get');
 
         if (resProfile.status === "success") {
@@ -128,28 +128,30 @@ export default function ProfilePage() {
             <div className={styles.col}>Дисциплина</div>
             <div className={styles.col}>Оценка (diff)</div>
           </div>
-          
-          <div className={styles.tableBody}>
-            {user.performances && user.performances.length > 0 ? (
-              user.performances.map((p: any, i: number) => (
-                <div key={i} className={styles.tableRow}>
-                  <div className={styles.col}>{p.region || '—'}</div>
-                  <div className={styles.col}>{p.city || '—'}</div>
-                  <div className={styles.col}>{p.competition || '—'}</div>
-                  <div className={styles.col}>{p.age_category || '—'}</div>
-                  <div className={styles.col}>{p.discipline || '—'}</div>
-                  <div className={`${styles.col} ${styles.ratingCell}`}>
-                    <span className={getRatingClass(p.diff)}>
-                      {p.mark} ({p.diff > 0 ? `+${p.diff.toFixed(2)}` : p.diff.toFixed(2)})
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
+
+          <div className={styles.tableScrollContainer}>
+            <div className={styles.tableBody}>
+              {user.performances && user.performances.length > 0 ? (
+                user.performances.map((p: any, i: number) => (
+                  <div key={i} className={styles.tableRow}>
+                    <div className={styles.col}>{p.region || '—'}</div>
+                   <div className={styles.col}>{p.city || '—'}</div>
+                    <div className={styles.col}>{p.competition || '—'}</div>
+                    <div className={styles.col}>{p.age_category || '—'}</div>
+                   <div className={styles.col}>{p.discipline || '—'}</div>
+                   <div className={`${styles.col} ${styles.ratingCell}`}>
+                     <span className={getRatingClass(p.diff)}>
+                        {p.mark} ({p.diff > 0 ? `+${p.diff.toFixed(2)}` : p.diff.toFixed(2)})
+                     </span>
+                   </div>
+                 </div>
+               ))
+             ) : (
               <div className={styles.emptyTable}>История выступлений отсутствует</div>
-            )}
-          </div>
-        </section>
+           )}
+            </div>
+           </div>
+          </section>
       </main>
     </div>
   );
