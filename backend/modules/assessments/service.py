@@ -3,12 +3,13 @@ from sqlmodel import Session, select,delete
 from core.types import APIResponce, Assessment
 import csv
 import pathlib
+import shutil
 import io
 
 class AssessmentService:
     def __init__(self):
         self.engine = engine
-        self.path = pathlib.Path(__file__).parent.parent.parent / "data/assessments.csv"
+        self.path = pathlib.Path(__file__).parent.parent.parent / "data/archive/Basic/assessments.csv"
     
     def read(self, force=True):
         with Session(self.engine) as session:
@@ -28,6 +29,9 @@ class AssessmentService:
             session.add_all(arr)
             session.commit()
 
+    def change_path(self, archive: str):
+        self.path = pathlib.Path(__file__).parent.parent.parent / f"data/archive/{archive}/assessments.csv"
+
     def perm_assessments(self, perm_id: int):
         try:
             with Session(self.engine) as session:
@@ -38,14 +42,21 @@ class AssessmentService:
             print(repr(e))
             return None
     
-    def upload(self, file: bytes):
+    def upload(self, file: bytes, archive: str):
         try:
             b = io.BytesIO(file)
+            self.change_path(archive)
             text = io.TextIOWrapper(b, "utf-8-sig")
+            print(self.path)
             with open(self.path, mode="w", encoding="utf-8-sig") as f:
-                f.write(text.read())
+               f.write(text.read())
         except Exception as e:
             print(repr(e))
             return
         print("ASSESSMENTS UPLOADED")
+        self.read(force=True)
+    
+    
+    def switch(self, archive: str):
+        self.change_path(archive)
         self.read(force=True)
