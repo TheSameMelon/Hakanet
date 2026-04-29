@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile, File
 from .service import UploadService
 from typing import List, Annotated
 from pydantic import BaseModel
+from core.types import APIResponce
 
 class ArchiveRequest(BaseModel):
     archive: str
@@ -25,4 +26,11 @@ async def upload_test(
 @router.post("/switch")
 def switch(req: ArchiveRequest):
     service.switch(req.archive)
+
+@router.get("/archive")
+def get_archive():
+    arc = service.get_archive()
+    if not arc:
+        return APIResponce(status="error")
+    return APIResponce(status="success", data=arc)
 

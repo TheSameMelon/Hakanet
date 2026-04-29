@@ -31,3 +31,8 @@ class UploadService:
         RefereeService().switch(arcive)
     
         DispersionService().calc_rating()
+
+    def get_archive(self):
+        path = pathlib.Path(__file__).parent.parent.parent / "data/archive"
+        dirs = [f.name for f in path.iterdir() if f.is_dir()]
+        return dirs
