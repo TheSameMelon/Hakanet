@@ -1,19 +1,32 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Импортируем роутер
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar/Sidebar';
 import styles from './page.module.css';
 import request from '@/core/api';
 
 export default function ArchivePage() {
-  const router = useRouter(); // Инициализируем роутер
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [archives, setArchives] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Загрузка списка архивов
+  // Получаем активный архив из localStorage, если там пусто — ставим "Basic"
+  const [activeArchive, setActiveArchive] = useState<string>('Basic');
+
+  useEffect(() => {
+    // Выполняем в useEffect, так как localStorage доступен только в браузере
+    const stored = localStorage.getItem('activeArchive');
+    if (stored) {
+      setActiveArchive(stored);
+    } else {
+      localStorage.setItem('activeArchive', 'Basic');
+    }
+    fetchArchives();
+  }, []);
+
   const fetchArchives = async () => {
     try {
       const res = await request('/upload/archive/', 'get');
@@ -27,36 +40,44 @@ export default function ArchivePage() {
     }
   };
 
-  useEffect(() => {
-    fetchArchives();
-  }, []);
-
-  // ЛОГИКА КНОПКИ ЗАМЕНИТЬ
   const handleSwitch = async (archiveName: string) => {
     try {
       const res = await request('/upload/switch', 'post', { archive: archiveName });
       
       if (res.status === "success") {
-        // Если замена прошла успешно, летим на страницу судей
+        localStorage.setItem('activeArchive', archiveName);
+        setActiveArchive(archiveName); // Обновляем стейт сразу
         router.push('/judges');
       } else {
-        alert("Ошибка при переключении архива: " + (res.error || "неизвестная ошибка"));
+        alert("Ошибка при переключении: " + (res.error || "неизвестная ошибка"));
       }
     } catch (err) {
-      console.error("Ошибка при запросе switch:", err);
-      alert("Сервер не ответил на запрос переключения");
+      console.error(err);
     }
   };
 
-  const deleteArchive = async (archiveName: string) => {
-    if (confirm(`Удалить архив ${archiveName}?`)) {
-      try {
-        // Заглушка под удаление (если эндпоинт появится)
-        // await request('/upload/archive/delete', 'post', { archive: archiveName });
+  const handleDelete = async (archiveName: string) => {
+    // Сравниваем с текущим активным архивом
+    if (activeArchive === archiveName) {
+      alert(`Нельзя удалить архив "${archiveName}", так как он активен в данный момент!`);
+      return;
+    }
+
+    if (!confirm(`Вы уверены, что хотите безвозвратно удалить архив ${archiveName}?`)) {
+      return;
+    }
+
+    try {
+      const res = await request('/upload/delete', 'post', { archive: archiveName });
+      
+      if (res.status === "success") {
         setArchives(prev => prev.filter(item => item !== archiveName));
-      } catch (err) {
-        alert("Не удалось удалить архив");
+      } else {
+        alert("Ошибка сервера при удалении");
       }
+    } catch (err) {
+      console.error("Ошибка при удалении:", err);
+      alert("Не удалось связаться с сервером");
     }
   };
 
@@ -68,7 +89,7 @@ export default function ArchivePage() {
         <div className={styles.pageWrapper}>
           <header className={styles.header}>
             <h1 className={styles.title}>Архив данных</h1>
-            <p className={styles.subtitle}>Список состояний системы. Выберите архив для активации данных.</p>
+            <p className={styles.subtitle}>Управление сохранениями системы</p>
           </header>
 
           <div className={styles.tableContainer}>
@@ -84,18 +105,18 @@ export default function ArchivePage() {
                     <motion.div 
                       key={archiveName}
                       layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
                       className={styles.rowCard}
                     >
                       <div className={styles.col}>
                         <span className={styles.dateText}>{archiveName}</span>
+                        {/* Бейдж активного архива */}
+                        {activeArchive === archiveName && (
+                          <span className={styles.activeBadge}>Активен</span>
+                        )}
                       </div>
                       
                       <div className={styles.colCenter}>
                         <div className={styles.actions}>
-                          {/* КНОПКА ЗАМЕНИТЬ */}
                           <button 
                             className={styles.btnReplace}
                             onClick={() => handleSwitch(archiveName)}
@@ -105,7 +126,7 @@ export default function ArchivePage() {
                           
                           <button 
                             className={styles.btnDelete} 
-                            onClick={() => deleteArchive(archiveName)}
+                            onClick={() => handleDelete(archiveName)}
                           >
                             Удалить
                           </button>
@@ -114,13 +135,9 @@ export default function ArchivePage() {
                     </motion.div>
                   ))
                 ) : (
-                  <div className={styles.loader}>Синхронизация с архивом...</div>
+                  <div className={styles.loader}>Загрузка данных...</div>
                 )}
               </AnimatePresence>
-              
-              {!loading && archives.length === 0 && (
-                <div className={styles.emptyState}>Архивных записей не обнаружено</div>
-              )}
             </div>
           </div>
         </div>

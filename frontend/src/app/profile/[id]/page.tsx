@@ -167,7 +167,7 @@ export default function ProfilePage() {
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <span className={styles.label}>Кол-во выходов</span>
+          <span className={styles.label}>Кол-во оценок</span>
           <div className={styles.value}>{user.performances?.length || 0}</div>
         </div>
         
