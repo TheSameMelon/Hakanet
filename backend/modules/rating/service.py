@@ -6,6 +6,27 @@ from collections import defaultdict
 from core.types import Rating, Types
 import json
 
+class StrictnessConfig:
+    """Настройки профиля строгости"""
+    # Базовые пороги (можно менять через дашборд)
+    OVER_THRESHOLD = 0.15    # баллов
+    UNDER_THRESHOLD = -0.15  # баллов
+    
+    # Для разных уровней можно отдельно
+    LEVEL_MULTIPLIERS = {
+        'weak': 1.2,     # слабым разрешим чуть больше завышать
+        'medium': 1.0,
+        'strong': 0.8    # сильным строже
+    }
+    
+    @classmethod
+    def get_threshold(cls, level: str, direction: str) -> float:
+        mult = cls.LEVEL_MULTIPLIERS.get(level, 1.0)
+        if direction == 'over':
+            return cls.OVER_THRESHOLD * mult
+        else:
+            return cls.UNDER_THRESHOLD * mult
+
 class DispersionService:
     def __init__(self):
         self.engine = engine
@@ -708,3 +729,84 @@ class DispersionService:
                 },
                 'categories': categories_stats
             }
+
+    def get_strictness_verdict(self, avg_deviation: float, level: str) -> str:
+        """
+        Возвращает 'завышает', 'занижает' или 'объективен'
+        """
+        # Получаем пороги для уровня
+        over_th = StrictnessConfig.get_threshold(level, 'over')
+        under_th = StrictnessConfig.get_threshold(level, 'under')
+        
+        if avg_deviation > over_th:
+            return 'завышает'
+        elif avg_deviation < under_th:
+            return 'занижает'
+        else:
+            return 'объективен'
+
+    def get_strictness_profile(self, referee_id: int, assessment_type: str = 'EXECUTION') -> Dict:
+        """
+        Анализ строгости: завышает/занижает в зависимости от уровня спортсмена
+        """
+        with Session(self.engine) as session:
+            stmt = select(Assessment, Performance).join(
+                Performance, Assessment.performance_id == Performance.id
+            ).where(
+                Assessment.referee_id == referee_id,
+                Assessment.type == assessment_type
+            )
+            
+            results = session.exec(stmt).all()
+            
+            # Группируем по уровню спортсмена (по итоговой оценке)
+            levels = {
+                'weak': {'range': (0, 7.0), 'deviations': [], 'count': 0},
+                'medium': {'range': (7.0, 8.5), 'deviations': [], 'count': 0},
+                'strong': {'range': (8.5, 10.0), 'deviations': [], 'count': 0}
+            }
+            
+            for assessment, performance in results:
+                final_score = assessment.result_type_assessment
+                deviation = assessment.referee_assessment - final_score
+                
+                # Определяем уровень спортсмена
+                if final_score < 7.0:
+                    levels['weak']['deviations'].append(deviation)
+                    levels['weak']['count'] += 1
+                elif final_score < 8:
+                    levels['medium']['deviations'].append(deviation)
+                    levels['medium']['count'] += 1
+                else:
+                    levels['strong']['deviations'].append(deviation)
+                    levels['strong']['count'] += 1
+            
+            # Рассчитываем среднее отклонение по каждому уровню
+            profile = {}
+            for level_name, data in levels.items():
+                if data['count'] > 0:
+                    avg_deviation = sum(data['deviations']) / data['count']
+                    
+                    # Интерпретация
+                    if avg_deviation > 0.1:
+                        verdict = self.get_strictness_verdict(avg_deviation, "weak")
+                    elif avg_deviation < -0.1:
+                        verdict = self.get_strictness_verdict(avg_deviation, "medium")
+                    else:
+                        verdict = self.get_strictness_verdict(avg_deviation, "strong")
+                    
+                    profile[level_name] = {
+                        'avg_deviation': round(avg_deviation, 3),
+                        'verdict': verdict,
+                        'count': data['count'],
+                        'severity': abs(avg_deviation)  # для визуализации
+                    }
+                else:
+                    profile[level_name] = {
+                        'avg_deviation': 0,
+                        'verdict': 'нет данных',
+                        'count': 0,
+                        'severity': 0
+                    }
+            
+            return profile
