@@ -65,24 +65,43 @@ class DispersionService:
     def calculate_overall_rating_with_bias(self, referee_stats: Dict) -> float:
         """
         Рейтинг с штрафом за предвзятость
+        Учитывает только категории, где есть оценки
         """
-        # Базовая точность
-        execution_rate = referee_stats['execution']['accuracy_rate']
-        artistic_rate = referee_stats['artistic']['accuracy_rate']
-        base_rating = (execution_rate + artistic_rate) / 2
+        # Собираем данные только по категориям с оценками
+        available_categories = []
+        weights = []
         
-        # Штраф за предвзятость (чем ближе к 0, тем лучше)
-        bias_execution = abs(referee_stats['execution']['bias'])
-        bias_artistic = abs(referee_stats['artistic']['bias'])
-        avg_bias = (bias_execution + bias_artistic) / 2
+        for category in ['execution', 'artistic']:
+            total = referee_stats[category]['total']
+            if total > 0:
+                available_categories.append(category)
+                # Вес пропорционален количеству оценок
+                weights.append(total)
         
-        # Штраф: максимум 0.3 (30%) за сильную предвзятость
-        bias_penalty = min(avg_bias * 0.5, 0.3)  # bias=0.6 → штраф 0.3
+        if not available_categories:
+            return 0  # нет данных
+        
+        # Нормализуем веса (сумма = 1)
+        total_weight = sum(weights)
+        weights = [w / total_weight for w in weights]
+        
+        # Взвешенная базовая точность
+        base_rating = 0
+        avg_bias = 0
+        
+        for i, category in enumerate(available_categories):
+            rate = referee_stats[category]['accuracy_rate']
+            base_rating += rate * weights[i]
+            
+            bias = abs(referee_stats[category]['bias'])
+            avg_bias += bias * weights[i]
+        
+        # Штраф за предвзятость
+        bias_penalty = min(avg_bias * 0.5, 0.3)
         
         final_rating = (base_rating - bias_penalty) * 100
         
-        return round(max(0, min(100, final_rating)), 1)  # Ограничиваем 0-100
-
+        return round(max(0, min(100, final_rating)), 1)
     def calc_rating(self) -> Dict:
         """
         Получает статистику по всем судьям: точность и предвзятость
@@ -842,6 +861,3 @@ class DispersionService:
                         }
             
             return result
-
-    def get_consensus_result(self, performance_id: int):
-        pass
