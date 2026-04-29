@@ -16,6 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const isRefereesActive = pathname === "/judges" || pathname.startsWith('/profile');
   const isCompetitionsActive = pathname.startsWith('/competitions');
   const isUploadActive = pathname.startsWith('/upload');
+  const isArchiveActive = pathname.startsWith('/archive'); // 1. Добавили проверку пути
 
   return (
     <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -49,6 +50,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         <Link href="/upload" className={`${styles.navItem} ${isUploadActive ? styles.active : ''}`}>
           <span className={styles.icon}>📤</span>
           {!isCollapsed && <span className={styles.text}>Загрузить данные</span>}
+        </Link>
+
+        {/* 2. НОВАЯ ВКЛАДКА АРХИВА */}
+        <Link href="/archive" className={`${styles.navItem} ${isArchiveActive ? styles.active : ''}`}>
+          <span className={styles.icon}>📁</span>
+          {!isCollapsed && <span className={styles.text}>Архив данных</span>}
         </Link>
       </nav>
     </aside>

@@ -1,0 +1,217 @@
+/* Базовая обертка для интеграции с Sidebar */
+.layoutWrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+/* Контентная часть, учитывающая ширину Sidebar */
+.mainContent {
+  flex: 1;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: 260px; /* Ширина открытого меню */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mainContent.expanded {
+  margin-left: 80px; /* Ширина закрытого меню */
+}
+
+/* Внутренняя обертка страницы */
+.pageWrapper {
+  padding: 40px;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Заголовок */
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+/* Контейнер таблицы */
+.tableContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Синяя шапка таблицы */
+.tableHeader {
+  display: grid;
+  grid-template-columns: 1fr 250px; 
+  background: #155DFC;
+  padding: 18px 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(21, 93, 252, 0.2);
+}
+
+.tableHeader .col {
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tableHeader .colCenter {
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+/* Контейнер строк */
+.rowsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+/* КАРТОЧКА СТРОКИ - ЭФФЕКТЫ ТУТ */
+.rowCard {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  background-color: #ffffff;
+  padding: 24px 32px;
+  border-radius: 12px;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid transparent;
+  cursor: pointer;
+  
+  /* Плавность для всех изменений */
+  transition: 
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+  
+  position: relative;
+  z-index: 1;
+}
+
+/* Тот самый Hover-эффект */
+.rowCard:hover {
+  transform: scale(1.012); /* Увеличение */
+  background-color: #cae2ff !important; /* Голубой фон */
+  box-shadow: 0 12px 30px rgba(21, 93, 252, 0.15) !important; /* Глубокая тень */
+  border-color: #dbeafe; /* Граница */
+  z-index: 10; /* Чтобы увеличенная карточка была поверх остальных */
+}
+
+.dateText {
+  font-weight: 700;
+  color: #155DFC;
+  font-size: 18px;
+  letter-spacing: 0.5px; /* Добавь немного межсимвольного интервала */
+  transition: color 0.3s ease;
+}
+
+.rowCard:hover .dateText {
+  color: #1d4ed8; /* Затемнение текста при наведении */
+}
+
+/* Действия и кнопки */
+.colCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btnReplace, .btnDelete {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.btnReplace {
+  background: #f0f7ff;
+  color: #155DFC;
+  border: 1px solid #dbeafe;
+}
+
+.btnReplace:hover {
+  background: #155DFC;
+  color: white;
+}
+
+.btnDelete {
+  background: white;
+  color: #ef4444;
+  border: 1px solid #fee2e2;
+}
+
+.btnDelete:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+/* Пустое состояние */
+.emptyState {
+  text-align: center;
+  padding: 60px;
+  color: #94a3b8;
+  background: white;
+  border-radius: 12px;
+  font-size: 18px;
+  border: 2px dashed #e2e8f0;
+}
+
+/* АДАПТИВНОСТЬ */
+@media (max-width: 1024px) {
+  .mainContent {
+    margin-left: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainContent, .mainContent.expanded {
+    margin-left: 0;
+  }
+  
+  .tableHeader {
+    display: none;
+  }
+  
+  .rowCard {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 20px;
+    padding: 24px;
+  }
+  
+  .actions {
+    justify-content: center;
+  }
+}

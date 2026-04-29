@@ -243,12 +243,35 @@
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
+  /* Убираем лишние отступы, если они были */
+  display: inline-block;
+}
+
+.dualValues .miniLabel {
+  width: 45px;
+  text-align: right;
 }
 
 .miniValue {
   font-size: 13px;
   font-weight: 700;
   color: #1e293b;
+  width: 45px;
+  text-align: right;
+}
+
+.strictHeader {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #f1f5f9;
+  margin-bottom: 4px;
+}
+
+.dualValues {
+  display: flex;
+  gap: 20px;
+  justify-content: flex-end;
 }
 
 @media (max-width: 1200px) {
