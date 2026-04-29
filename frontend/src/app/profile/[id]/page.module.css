@@ -1,12 +1,11 @@
 .pageWrapper {
   padding: 40px;
-  background-color: #f4f7fa;
+  background-color: #f8fafc;
   min-height: 100vh;
   font-family: sans-serif;
 }
 
-/* Стили заголовка и новой кнопки */
-.profileHeader {
+.header {
   margin-bottom: 32px;
 }
 
@@ -18,7 +17,6 @@
   color: #155DFC;
   font-weight: 700;
   font-size: 15px;
-  transition: all 0.3s ease;
 }
 
 .iconCircle {
@@ -29,141 +27,168 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.iconCircle svg {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.backButton:hover {
-  color: #0047ab;
+  transition: all 0.2s ease;
 }
 
 .backButton:hover .iconCircle {
+  transform: translateX(-5px);
   background-color: rgba(21, 93, 252, 0.1);
-  border-color: #0047ab;
 }
 
-.backButton:hover .iconCircle svg {
-  transform: translateX(-3px);
-}
-
-/* Сетка карточек */
-.gridContainer {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1.2fr;
-  gap: 24px;
-}
-
-.card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-}
-
-.mainInfo h1 {
-  font-size: 28px;
+.personalInfo h1 {
+  font-size: 32px;
   margin: 0;
-  color: #0f172a;
+  color: #1e293b;
 }
 
-.subText {
+.personalInfo p {
   color: #64748b;
-  margin-top: 8px;
+  font-size: 18px;
+  margin-top: 4px;
+  margin-bottom: 32px;
 }
 
-.cardLabel {
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.statCard {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.label {
+  display: block;
   font-size: 11px;
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-.cardValue {
-  font-size: 40px;
+.value {
+  font-size: 36px;
   font-weight: 800;
   color: #155DFC;
 }
 
-/* Таблица и Скролл */
-.historyTable {
-  grid-column: span 2;
-  padding: 0 !important;
+.subStatus {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.statusSuccess {
+  color: #22c55e !important;
+}
+
+.historySection {
+  background: white;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
 }
 
-.scrollContainer {
-  max-height: 240px;
-  overflow-y: auto;
-  background: #ffffff;
-}
-
-.scrollContainer::-webkit-scrollbar {
-  width: 6px;
-}
-.scrollContainer::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 10px;
-}
-
-.tableHeader, .tableRow {
-  display: grid;
-  grid-template-columns: 1.2fr 1.2fr 1.2fr 2fr 0.8fr 1.5fr;
-  gap: 15px;
-  align-items: center;
-  padding: 0 20px;
-}
-
 .tableHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 0.8fr 1.2fr 1fr;
   background: #1e293b;
-  height: 50px;
-  text-transform: uppercase;
-  z-index: 2;
-  border-radius: 12px 12px 0 0;
-}
-
-.tableRow {
-  height: 60px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.col {
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
+  padding: 15px 24px;
 }
 
 .tableHeader .col {
-  color: #ffffff !important;
+  color: white;
   font-size: 11px;
   font-weight: 800;
+  text-transform: uppercase;
 }
 
-.tableRow .col {
-  color: #334155; 
+.tableRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 0.8fr 1.2fr 1fr;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  align-items: center;
 }
+
+.col {
+  font-size: 14px;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ratingCell span {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.ratingRed { background: #fee2e2; color: #ef4444; }
+.ratingYellow { background: #fef9c3; color: #a16207; }
+.ratingGreen { background: #dcfce7; color: #22c55e; }
 
 .emptyTable {
-  padding: 20px;
+  padding: 40px;
   text-align: center;
   color: #94a3b8;
 }
 
-/* Тепловая карта */
-.heatMap { grid-column: 3; }
+@media (max-width: 1024px) {
+  .statsGrid { grid-template-columns: 1fr; }
+  .tableHeader { display: none; }
+  .tableRow { grid-template-columns: 1fr; gap: 8px; }
+}
 
-.gradientBox {
-  width: 100%;
-  height: 180px;
-  background: linear-gradient(135deg, #155DFC 0%, #60A5FA 100%);
-  border-radius: 12px;
+/* Контейнер для прокрутки */
+.tableScrollContainer {
+  max-height: 360px; /* Высота 6 строк по ~60px */
+  overflow-y: auto;  /* Включаем вертикальный скролл */
+  background: white;
+}
+
+/* Настройка внешнего вида скроллбара (чтобы не был уродливым системным) */
+.tableScrollContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tableScrollContainer::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.tableScrollContainer::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+  border: 2px solid #f1f5f9;
+}
+
+/* Убираем border-bottom у самой последней строки, чтобы не двоился с краем карточки */
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: #f1f5f9;
+  cursor: default;
+}
+
+/* Чтобы шапка не "уплывала" и была ровно над контентом */
+.tableHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  /* остальные стили из предыдущего кода остаются */
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 0.8fr 1.2fr 1fr;
+  background: #1e293b;
+  padding: 15px 24px;
 }
