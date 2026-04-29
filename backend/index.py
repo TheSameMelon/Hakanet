@@ -12,11 +12,13 @@ from modules.referee.route import router as RefereeRouter
 from modules.performances.route import router as PerformancesRouter
 from modules.rating.route import router as DispersionRouter
 #from core.settings import settings
+from modules.upload.route import router as UploadRouter
 
 from modules.assessments.service import AssessmentService
 from modules.referee.service import RefereeService
 from modules.performances.service import PerformanceService
 from modules.rating.service import DispersionService
+
 
 from contextlib import asynccontextmanager
 from data.database import engine
@@ -43,6 +45,8 @@ server.include_router(AssessmentsRouter, prefix="/assessments", tags=["Оцен�
 server.include_router(RefereeRouter, prefix="/referee", tags=["Судьи"])
 server.include_router(PerformancesRouter, prefix="/performances", tags=["Выступления"])
 server.include_router(DispersionRouter, prefix="/dispersion", tags=["Отклонения"])
+server.include_router(UploadRouter, prefix="/upload", tags=["Загрузка"])
+
 
 SQLModel.metadata.create_all(engine)
 
