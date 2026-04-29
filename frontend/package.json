@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "apexcharts": "^5.10.6",
     "axios": "^1.13.6",
     "next": "16.1.6",
     "react": "19.2.3",
+    "react-apexcharts": "^2.1.0",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
