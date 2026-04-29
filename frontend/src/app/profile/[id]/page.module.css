@@ -219,6 +219,38 @@
   font-family: sans-serif !important;
 }
 
+.strictnessDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.strictItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.strictItem:last-child {
+  border-bottom: none;
+}
+
+.miniLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.miniValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
 @media (max-width: 1200px) {
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);

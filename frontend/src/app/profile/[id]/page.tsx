@@ -151,7 +151,8 @@ export default function ProfilePage() {
         <Link href="/judges" className={styles.backButton}>
           <div className={styles.iconCircle}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
             </svg>
           </div>
           <span>Назад к списку</span>
@@ -172,7 +173,9 @@ export default function ProfilePage() {
           
           <div className={styles.statCard}>
             <span className={styles.label}>Артистизм (Accuracy)</span>
-            <div className={styles.value}>{dispersion?.artistic?.accuracy_rate ? (dispersion.artistic.accuracy_rate * 100).toFixed(1) + '%' : '—'}</div>
+            <div className={styles.value}>
+              {dispersion?.artistic?.accuracy_rate ? (dispersion.artistic.accuracy_rate * 100).toFixed(1) + '%' : '—'}
+            </div>
             <span className={`${styles.subStatus} ${dispersion?.artistic?.bias_interpretation === 'Объективен' ? styles.statusSuccess : ''}`}>
               {dispersion?.artistic?.bias_interpretation || 'Нет данных'}
             </span>
@@ -180,19 +183,37 @@ export default function ProfilePage() {
 
           <div className={styles.statCard}>
             <span className={styles.label}>Исполнение (Accuracy)</span>
-            <div className={styles.value}>{dispersion?.execution?.accuracy_rate > 0 ? (dispersion.execution.accuracy_rate * 100).toFixed(1) + '%' : '—'}</div>
+            <div className={styles.value}>
+              {dispersion?.execution?.accuracy_rate > 0 ? (dispersion.execution.accuracy_rate * 100).toFixed(1) + '%' : '—'}
+            </div>
             <span className={`${styles.subStatus} ${dispersion?.execution?.bias_interpretation === 'Объективен' ? styles.statusSuccess : ''}`}>
               {dispersion?.execution?.bias_interpretation || 'Нет данных'}
             </span>
           </div>
 
-          {/* НОВАЯ КАРТОЧКА: СТРОГОСТЬ */}
+          {/* ИСПРАВЛЕННАЯ КАРТОЧКА: СТРОГОСТЬ (3 параметра) */}
           <div className={styles.statCard}>
             <span className={styles.label}>Строгость (Severity)</span>
-            <div className={styles.value}>{getAvgSeverity() || '—'}</div>
-            <span className={`${styles.subStatus} ${getStrictnessVerdict() === 'Объективен' ? styles.statusSuccess : ''}`}>
-              {getStrictnessVerdict()}
-            </span>
+            {strictness ? (
+              <div className={styles.strictnessDetails}>
+                {[
+                  { id: 'weak', label: 'Weak' },
+                  { id: 'medium', label: 'Medium' },
+                  { id: 'strong', label: 'Strong' }
+                ].map((item) => (
+                  <div key={item.id} className={styles.strictItem}>
+                    <span className={styles.miniLabel}>{item.label}:</span>
+                    <span className={`${styles.miniValue} ${strictness[item.id]?.verdict === 'объективен' ? styles.statusSuccess : ''}`}>
+                      {strictness[item.id] 
+                        ? `${(strictness[item.id].severity).toFixed(1)} (${strictness[item.id].verdict})` 
+                        : '—'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.value}>—</div>
+            )}
           </div>
         </div>
 
@@ -208,7 +229,7 @@ export default function ProfilePage() {
           <div className={styles.tableScrollContainer}>
             <div className={styles.tableBody}>
               {user.performances?.length > 0 ? (
-                user.performances.map((p: any, i: number) => (
+                user.performances.map((p, i) => (
                   <div key={i} className={styles.tableRow}>
                     <div className={styles.col}>{p.region || '—'}</div>
                     <div className={styles.col}>{p.city || '—'}</div>
