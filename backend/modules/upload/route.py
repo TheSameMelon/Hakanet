@@ -21,11 +21,17 @@ async def upload_test(
     perf = await performance.read()
     assess = await assessments.read()
 
-    service.upload(ref, perf, assess)
+    s = service.upload(ref, perf, assess)
+    if not s:
+        return APIResponce(status="error")
+    return APIResponce(status="success")
 
 @router.post("/switch")
 def switch(req: ArchiveRequest):
-    service.switch(req.archive)
+    s = service.switch(req.archive)
+    if not s:
+        return APIResponce(status="error")
+    return APIResponce(status="success")
 
 @router.get("/archive")
 def get_archive():
@@ -34,3 +40,10 @@ def get_archive():
         return APIResponce(status="error")
     return APIResponce(status="success", data=arc)
 
+
+@router.post("/delete")
+def delete_archive(req: ArchiveRequest):
+    s = service.delete(req.archive)
+    if not s:
+        return APIResponce(status="error")
+    return APIResponce(status="success")
