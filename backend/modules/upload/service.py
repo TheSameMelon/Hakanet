@@ -5,6 +5,8 @@ from modules.rating.service import DispersionService
 from data.database import engine
 from fastapi import UploadFile
 from sqlmodel import Session, select
+from datetime import datetime
+import pathlib
 import csv
 import io
 
@@ -13,8 +15,19 @@ class UploadService:
         self.engine = engine
     
     def upload(self, ref: bytes, perf: bytes, assess: bytes):
-        AssessmentService().upload(assess)
-        PerformanceService().upload(perf)
-        RefereeService().upload(ref)
+        arcive = str(datetime.now().time()).replace(":", "").replace(".","")
+        path = pathlib.Path(__file__).parent.parent.parent / f"data/archive/{arcive}"
+        path.mkdir()
+        AssessmentService().upload(assess, arcive)
+        PerformanceService().upload(perf, arcive)
+        RefereeService().upload(ref, arcive)
 
+
+        DispersionService().calc_rating()
+
+    def switch(self, arcive: str):
+        AssessmentService().switch(arcive)
+        PerformanceService().switch(arcive)
+        RefereeService().switch(arcive)
+    
         DispersionService().calc_rating()

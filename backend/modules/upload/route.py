@@ -1,6 +1,11 @@
 from fastapi import APIRouter, UploadFile, File
 from .service import UploadService
 from typing import List, Annotated
+from pydantic import BaseModel
+
+class ArchiveRequest(BaseModel):
+    archive: str
+
 
 router = APIRouter()
 service = UploadService()
@@ -16,3 +21,8 @@ async def upload_test(
     assess = await assessments.read()
 
     service.upload(ref, perf, assess)
+
+@router.post("/switch")
+def switch(req: ArchiveRequest):
+    service.switch(req.archive)
+

@@ -1,3 +1,5 @@
+import shutil
+
 from core.types import Performance, Rating, Referee, Assessment
 from sqlmodel import Session, select, delete
 import pathlib
@@ -8,7 +10,7 @@ import io
 class PerformanceService:
     def __init__(self):
         self.engine = engine
-        self.path = pathlib.Path(__file__).parent.parent.parent / "data/performances.csv"
+        self.path = pathlib.Path(__file__).parent.parent.parent / "data/archive/Basic/performances.csv"
     
     def read(self, force=True):
         with Session(self.engine) as session:
@@ -65,16 +67,24 @@ class PerformanceService:
         except Exception as e:
             print(repr(e))
             return None
-        
-    def upload(self, file: bytes):
-        
+     
+    def change_path(self, archive: str):
+        self.path = pathlib.Path(__file__).parent.parent.parent / f"data/archive/{archive}/performances.csv"
+
+    def upload(self, file: bytes, archive: str):
         try:
             b = io.BytesIO(file)
+            self.change_path(archive)
             text = io.TextIOWrapper(b, "utf-8-sig")
             with open(self.path, mode="w", encoding="utf-8-sig") as f:
-                f.write(text.read())
+                shutil.copyfileobj(text, f)
         except Exception as e:
             print(repr(e))
             return
         print("PERFORMANCE UPLOADED")
+        self.read(force=True)
+    
+    
+    def switch(self, archive: str):
+        self.change_path(archive)
         self.read(force=True)

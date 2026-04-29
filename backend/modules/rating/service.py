@@ -842,3 +842,6 @@ class DispersionService:
                         }
             
             return result
+
+    def get_consensus_result(self, performance_id: int):
+        pass
