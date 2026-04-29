@@ -745,25 +745,46 @@ class DispersionService:
         else:
             return 'объективен'
 
-    def get_strictness_profile(self, referee_id: int, assessment_type: str = 'EXECUTION') -> Dict:
+    def get_strictness_profile(self, referee_id: int) -> Dict:
         """
-        Анализ строгости: завышает/занижает в зависимости от уровня спортсмена
+        Анализ строгости для обеих категорий оценок
+        Возвращает профиль для EXECUTION и ARTISTIC отдельно
+        
+        Пример результата:
+        {
+            'execution': {
+                'weak': {'avg_deviation': 0.12, 'verdict': 'завышает', 'count': 5, 'severity': 0.12},
+                'medium': {'avg_deviation': -0.03, 'verdict': 'объективен', 'count': 12, 'severity': 0.03},
+                'strong': {'avg_deviation': -0.15, 'verdict': 'занижает', 'count': 8, 'severity': 0.15}
+            },
+            'artistic': {
+                'weak': {...},
+                'medium': {...},
+                'strong': {...}
+            }
+        }
         """
         with Session(self.engine) as session:
             stmt = select(Assessment, Performance).join(
                 Performance, Assessment.performance_id == Performance.id
             ).where(
-                Assessment.referee_id == referee_id,
-                Assessment.type == assessment_type
+                Assessment.referee_id == referee_id
             )
             
             results = session.exec(stmt).all()
             
-            # Группируем по уровню спортсмена (по итоговой оценке)
-            levels = {
-                'weak': {'range': (0, 7.0), 'deviations': [], 'count': 0},
-                'medium': {'range': (7.0, 8.5), 'deviations': [], 'count': 0},
-                'strong': {'range': (8.5, 10.0), 'deviations': [], 'count': 0}
+            # Инициализируем структуру для двух типов оценок
+            profile = {
+                'execution': {
+                    'weak': {'deviations': [], 'count': 0},
+                    'medium': {'deviations': [], 'count': 0},
+                    'strong': {'deviations': [], 'count': 0}
+                },
+                'artistic': {
+                    'weak': {'deviations': [], 'count': 0},
+                    'medium': {'deviations': [], 'count': 0},
+                    'strong': {'deviations': [], 'count': 0}
+                }
             }
             
             for assessment, performance in results:
@@ -772,41 +793,52 @@ class DispersionService:
                 
                 # Определяем уровень спортсмена
                 if final_score < 7.0:
-                    levels['weak']['deviations'].append(deviation)
-                    levels['weak']['count'] += 1
-                elif final_score < 8:
-                    levels['medium']['deviations'].append(deviation)
-                    levels['medium']['count'] += 1
+                    level = 'weak'
+                elif final_score < 8.5:
+                    level = 'medium'
                 else:
-                    levels['strong']['deviations'].append(deviation)
-                    levels['strong']['count'] += 1
+                    level = 'strong'
+                
+                # Определяем тип оценки
+                if assessment.type == 'EXECUTION':
+                    target = profile['execution'][level]
+                elif assessment.type == 'ARTISTIC':
+                    target = profile['artistic'][level]
+                else:
+                    continue
+                
+                target['deviations'].append(deviation)
+                target['count'] += 1
             
-            # Рассчитываем среднее отклонение по каждому уровню
-            profile = {}
-            for level_name, data in levels.items():
-                if data['count'] > 0:
-                    avg_deviation = sum(data['deviations']) / data['count']
-                    
-                    # Интерпретация
-                    if avg_deviation > 0.1:
-                        verdict = self.get_strictness_verdict(avg_deviation, "weak")
-                    elif avg_deviation < -0.1:
-                        verdict = self.get_strictness_verdict(avg_deviation, "medium")
+            # Рассчитываем среднее отклонение и вердикт для каждого уровня и типа
+            result = {}
+            for assessment_type in ['execution', 'artistic']:
+                result[assessment_type] = {}
+                
+                for level_name, data in profile[assessment_type].items():
+                    if data['count'] > 0:
+                        avg_deviation = sum(data['deviations']) / data['count']
+                        
+                        # Определяем вердикт на основе среднего отклонения
+                        if avg_deviation > 0.1:
+                            verdict = 'завышает'
+                        elif avg_deviation < -0.1:
+                            verdict = 'занижает'
+                        else:
+                            verdict = 'объективен'
+                        
+                        result[assessment_type][level_name] = {
+                            'avg_deviation': round(avg_deviation, 3),
+                            'verdict': verdict,
+                            'count': data['count'],
+                            'severity': abs(round(avg_deviation, 3))
+                        }
                     else:
-                        verdict = self.get_strictness_verdict(avg_deviation, "strong")
-                    
-                    profile[level_name] = {
-                        'avg_deviation': round(avg_deviation, 3),
-                        'verdict': verdict,
-                        'count': data['count'],
-                        'severity': abs(avg_deviation)  # для визуализации
-                    }
-                else:
-                    profile[level_name] = {
-                        'avg_deviation': 0,
-                        'verdict': 'нет данных',
-                        'count': 0,
-                        'severity': 0
-                    }
+                        result[assessment_type][level_name] = {
+                            'avg_deviation': 0,
+                            'verdict': 'нет данных',
+                            'count': 0,
+                            'severity': 0
+                        }
             
-            return profile
+            return result
