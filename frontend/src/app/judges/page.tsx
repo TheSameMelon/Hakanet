@@ -94,7 +94,7 @@ export default function Page() {
                     <td className={styles.nameCell}>{user.fio}</td>
                     <td>{user.region || '—'}</td>
                     <td>{user.city || '—'}</td>
-                    <td className={styles.ratingCell}>{user.rating || '—'}</td>
+                    <td className={styles.ratingCell}>{user.rating || '0'}</td>
                   </tr>
                 </Link>
               ))}
