@@ -44,14 +44,15 @@ export default function LandingPage() {
     <div className={styles.wrapper}>
       <header className={styles.hero}>
         <nav className={styles.nav}>
-          <Link href="/" className={styles.logo}>
+          <Link href="/Image.png" className={styles.logo}>
             AEROBIC <span>SPACE</span>
           </Link>
           
           <div className={styles.menu}>
-            <Link href="/competitions" className={styles.menuItem}>Соревнования</Link>
             <Link href="/judges" className={styles.menuItem}>Судьи</Link>
+            <Link href="/competitions" className={styles.menuItem}>Соревнования</Link>
             <Link href="/upload" className={styles.menuItem}>Загрузка</Link>
+            <Link href="/archive" className={styles.menuItem}>Архив</Link>
           </div>
           <div className={styles.navSpacer}></div> 
         </nav>
